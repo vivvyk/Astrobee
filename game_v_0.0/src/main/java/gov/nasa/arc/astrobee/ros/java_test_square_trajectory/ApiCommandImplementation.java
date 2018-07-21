@@ -19,6 +19,9 @@
 package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -66,6 +69,11 @@ public class ApiCommandImplementation {
     private Robot robot;
 
     private PlannerType plannerType = null;
+
+    //The Keep Out Zone(s)
+    private final KeepOutZone test_sphere_1 = new KeepOutZone(new SPoint(4, 0, 4.8), 1);
+    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(1,0,4.8), 2, 0.5, new SVector(1,0,0));
+    private final KeepOutZone[] keepOutZones= {test_sphere_1, test_ring_1};
 
     /**
      * Private constructor that prevents other objects from creating instances of this class.
@@ -212,22 +220,78 @@ public class ApiCommandImplementation {
      */
     public Result moveTo(Point goalPoint, Quaternion orientation) {
 
+        //TODO:: restrict moveTo() for only validWaypoint()
+        //TODO:: aka add an if statement with vlaid waypoint checker
+
         // First, stop all motion
         Result result = stopAllMotion();
 
         if (result.hasSucceeded()) {
             // We stopped, do your stuff now
-            logger.info("Planner is " + plannerType.toString());
-            logger.info("Moving the bee");
+           // if (validWaypoint(goalPoint)) {
+                logger.info("Planner is " + plannerType.toString());
+                logger.info("Moving the bee");
 
-            // Setting a simple movement command using the end point and the end orientation.
-            PendingResult pending = robot.simpleMove6DOF(goalPoint, orientation);
+                // Setting a simple movement command using the end point and the end orientation.
+                PendingResult pending = robot.simpleMove6DOF(goalPoint, orientation);
 
-            // Get the command execution result and send it back to the requester.
+                // Get the command execution result and send it back to the requester.
+                result = getCommandResult(pending, true);
+            } else {
+                logger.error("Your goal point is invalid, will collide with an object.");
+                result = stopAllMotion();
+            }
+        //}
+        return result;
+    }
+
+    /**
+     * Checks if the Astrobee destination will work given the KOZs
+     * @param goalPoint (xyz) point you want to test if valid
+     *
+     * @return A bool, false if AB will collide, true if not
+     */
+    public boolean validWaypoint(Point goalPoint){
+        SPoint cur_pos = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+        SPoint goal = new SPoint(goalPoint.getX(), goalPoint.getY(), goalPoint.getZ());
+        ArrayList<Map<Integer, List<Object>>> results = new ArrayList<Map<Integer, List<Object>>>();
+        ArrayList<Integer> projections = new ArrayList<Integer>();
+        int koz_count = keepOutZones.length;
+        for (int i = 0; i < koz_count; i++) {
+            // iterates through the keepOutZones to check any collisions
+            results.add(keepOutZones[i].aB_path_projection(cur_pos, goal));
+        }
+        for (Map<Integer, List<Object>> result : results) {
+            for (Map.Entry<Integer, List<Object>> entry : result.entrySet()) {
+                projections.add((Integer) entry.getValue().get(0));
+            }
+        }
+        if (projections.contains(0)) {
+            System.out.println("returns were" + projections);
+            return false;
+        } else {
+            System.out.println("returns were" + projections);
+            return true;
+        }
+    }
+
+    //  THIS COMMAND MAY NOT BE AVAILABLE TO STUDENTS, MAYBE USED TO START GAME
+    // FAILED, prepare() command not available in "operating state"
+    public Result startUp(){
+        // First, make sure not moving
+        Result result = stopAllMotion();
+        logger.info("Hi, just started startUp() command");
+
+        if (result.hasSucceeded()) {
+            // Setting the mobility prepare command to get the robot ready to move
+            PendingResult pending = robot.prepare();
+
+            // Get the result of command execution to send back
             result = getCommandResult(pending, true);
         }
-
+        logger.info("Hi, just finished startUp() command");
         return result;
+
     }
 
     public Result stopAllMotion() {
