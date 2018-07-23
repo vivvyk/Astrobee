@@ -32,17 +32,30 @@ public class TestSquareTrajectoryMain {
         // Get a unique instance of the Astrobee API in order to command the robot.
         ApiCommandImplementation api = ApiCommandImplementation.getInstance();
 
+
         // At the end of execution, this variable will contain the last command result. It may be useful
         Result result = null;
 
+        //keep track of time to test timing of game
+       // long start_time = System.currentTimeMillis();
+       // System.out.println(start_time);
+       // Timer startUpTest = new Timer(start_time);
+
+
         // Loop the points and orientation previously defined.
         for (int i = 0; i < arrayPoint.length; i++) {
+            System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]));
+            System.out.println("another loop");
             result = api.moveTo(arrayPoint[i], arrayOrient[i]);
             if (!result.hasSucceeded()) {
+                System.out.println("QUITTING");
                 // If any movement fails we cancel all execution.
                 break;
             }
         }
+
+        /* Will print the elapsed time it took for the calls to execute above */
+       // System.out.println("This is the amount of time it took::" + startUpTest.timeElapsed(System.currentTimeMillis()));
 
         // Stop the API
         api.shutdownFactory();
