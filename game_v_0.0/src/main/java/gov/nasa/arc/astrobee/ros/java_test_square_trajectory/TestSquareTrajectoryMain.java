@@ -9,10 +9,11 @@ public class TestSquareTrajectoryMain {
 
     // Fixed trajectory points
     private static final Point HOME_POSITION = new Point(2, 0, 4.8);
-    private static final Point POINT_1 = new Point(-0.8, 0.25, 4.8);
-    private static final Point POINT_2 = new Point(5, 0.25, 4.8);
-    private static final Point POINT_3 = new Point(5, -0.25, 4.8);
-    private static final Point POINT_4 = new Point(-0.8, -0.25, 4.8);
+    private static final Point POINT_1 = new Point(1, 0.6, 4.8);
+    private static final Point POINT_2 = new Point(5, 0.6, 5.1);
+    private static final Point POINT_3 = new Point(5, -0.3, 4.8);
+    private static final Point POINT_4 = new Point(1, -0.3, 4.8);
+    private static final Point POINT_5 = new Point(1, 0.6, 5.1);
 
     // Fixed trajectory orientations (POINT_1 and 2 use default orientation)
     private static final Quaternion DEFAULT_ORIENT = new Quaternion();
@@ -20,8 +21,8 @@ public class TestSquareTrajectoryMain {
     private static final Quaternion ORIENT_4 = new Quaternion(0, 0, 1, 0);
 
     // Defining trajectory. Fixed positions and orientations. An orientation for each position.
-    private static Point[] arrayPoint = {HOME_POSITION, POINT_1, POINT_2, POINT_3, POINT_4, POINT_1};
-    private static Quaternion[] arrayOrient = {DEFAULT_ORIENT, DEFAULT_ORIENT, ORIENT_3, ORIENT_4, DEFAULT_ORIENT};
+    private static Point[] arrayPoint = {POINT_1, POINT_2, POINT_3, POINT_4, POINT_1, POINT_5};
+    private static Quaternion[] arrayOrient = {DEFAULT_ORIENT, DEFAULT_ORIENT, ORIENT_3, ORIENT_4, DEFAULT_ORIENT, DEFAULT_ORIENT};
 
 
     public static void main(String[] args) {

@@ -31,6 +31,7 @@ import gov.nasa.arc.astrobee.RobotFactory;
 
 import gov.nasa.arc.astrobee.ros.DefaultRobotFactory;
 import gov.nasa.arc.astrobee.ros.RobotConfiguration;
+import gov.nasa.arc.astrobee.types.FlashlightLocation;
 import gov.nasa.arc.astrobee.types.PlannerType;
 import gov.nasa.arc.astrobee.types.Point;
 import gov.nasa.arc.astrobee.types.Quaternion;
@@ -66,6 +67,9 @@ public class ApiCommandImplementation {
     private Robot robot;
 
     private PlannerType plannerType = null;
+    private FlashlightLocation flashlight;
+
+    private GameManager game = new GameManager();
 
     /**
      * Private constructor that prevents other objects from creating instances of this class.
@@ -98,6 +102,8 @@ public class ApiCommandImplementation {
         } catch (InterruptedException e) {
             logger.info("Connection Interrupted");
         }
+
+        //game = new GameManager(1, 1.5, new SPoint(1, 0, 4.5));
     }
 
     /**
@@ -135,15 +141,33 @@ public class ApiCommandImplementation {
 
         try {
             Kinematics k;
+            //SPoint rollpitchyaw = new SPoint(0, 0, 0);
+            //SPoint plant = new SPoint(1, 0, 4.8);
+            //Plants xyz = new Plants(1, 1.5, plant);
+
 
             // Waiting until command is done.
             while (!pending.isFinished()) {
                 if (printRobotPosition) {
                     // Meanwhile, let's get the positioning along the trajectory
-                    k = robot.getCurrentKinematics();
+                    /*
 
-                    logger.info("Current Position: " + k.getPosition().toString());
-                    logger.info("Current Orientation" + k.getOrientation().toString());
+                    k = robot.getCurrentKinematics();
+                    rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
+
+                    System.out.println(k.getPosition().toString());
+                    System.out.println(xyz.rpy_cone(rollpitchyaw).toString());
+
+                    SPoint plantvec = xyz.plant_vec(plant.toSPoint(k.getPosition()), plant);
+                    System.out.println(plantvec.toString());
+
+                    System.out.print(xyz.score(plantvec, xyz.rpy_cone(rollpitchyaw)));
+                    System.out.println("-----");
+                    */
+
+
+                    //logger.info("Current Position: " + k.getPosition().toString());
+                    //logger.info("Current Orientation" + k.getOrientation().toString());
                 }
 
                 // Wait a little bit before retry
@@ -233,6 +257,30 @@ public class ApiCommandImplementation {
     public Result stopAllMotion() {
         PendingResult pendingResult = robot.stopAllMotion();
         return getCommandResult(pendingResult, false);
+    }
+
+    public Result pollinate(FlashlightLocation flashlight, float brightness) {
+
+        Kinematics k;
+        k = robot.getCurrentKinematics();
+
+
+        SPoint rpy = SPoint.quat_rpy(k.getOrientation());
+        //SPoint plant = new SPoint(1, 0, 4.8);
+
+        //Plants xyz = new Plants(1, 1.5, plant);
+        for(int i = 0; i < game.plant_number; i++) {
+            SPoint plantvec = game.plants.plant_vec(game.plants.plant_loc[i], SPoint.toSPoint(k.getPosition()));
+
+            double score = game.plants.score(plantvec, game.plants.rpy_cone(rpy));
+            System.out.println(score);
+        }
+        System.out.println("-----");
+
+
+        PendingResult pending = robot.setFlashlightBrightness(flashlight, brightness);
+        Result result = getCommandResult(pending, false);
+        return result;
     }
 
     /**
