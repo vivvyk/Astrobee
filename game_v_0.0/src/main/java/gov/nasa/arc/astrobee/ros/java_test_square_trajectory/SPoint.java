@@ -63,21 +63,6 @@ public class SPoint {
         return new SPoint(new_x, new_y, new_z);
     }
 
-    public double dist(SPoint other){
-        /*
-        *   returns the distance of this point from another point
-         */
-        double dist = Math.sqrt(Math.pow((_x - other.get_x()), 2.0) + Math.pow((_y - other.get_y()), 2.0) + Math.pow((_z - other.get_z()), 2.0));
-        return dist;
-    }
-
-    public double distSquared(SPoint other){
-        /*
-        *   more efficient than dist, use this for calculations
-         */
-        return Math.pow((_x - other.get_x()), 2.0) + Math.pow((_y - other.get_y()), 2.0) + Math.pow((_z - other.get_z()), 2.0);
-    }
-
     public static double dot(SPoint p1, SPoint p2){
         double product = 0.0;
         product += p1.get_x() * p2.get_x();
@@ -96,7 +81,7 @@ public class SPoint {
         return mag;
     }
 
-    public static SPoint quat_rpy(Quaternion q){
+    public static SPoint quat_rpy(Quaternion q) {
 
         // roll (x-axis rotation)
         double sinr = 2.0 * (q.getW() * q.getX() + q.getY() * q.getZ());
@@ -107,8 +92,8 @@ public class SPoint {
         double sinp = 2.0 * (q.getW() * q.getY() - q.getZ() * q.getX());
         double pitch = 0.0;
         if (Math.abs(sinp) >= 1) {
-            pitch = Math.copySign(Math.PI/2, sinp); // use 90 degrees if out of range
-        }else {
+            pitch = Math.copySign(Math.PI / 2, sinp); // use 90 degrees if out of range
+        } else {
             pitch = Math.asin(sinp);
         }
 
@@ -122,7 +107,7 @@ public class SPoint {
         return rpy;
 
 
-
+    }
 
     public static SPoint toSPoint(Point astrobee_point) {
         // converts the Astrobee Point to an SPoint object
