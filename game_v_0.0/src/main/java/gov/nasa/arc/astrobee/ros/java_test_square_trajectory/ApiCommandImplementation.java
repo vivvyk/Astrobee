@@ -57,6 +57,10 @@ public class ApiCommandImplementation {
     // Name of the node
     private static final String NODE_NAME = "astrobee_java_app";
 
+    private static final int SUCCESS = -1;
+    private static final int VALIDATE_ERROR = 0;
+    private static final int MOVE_TO_ERROR = 1;
+
     // The instance to access this class
     private static ApiCommandImplementation instance = null;
 
@@ -75,6 +79,7 @@ public class ApiCommandImplementation {
     private GameManager game = new GameManager();
 
     //The Keep Out Zone(s)
+    /* Astrobee should start at 2, 0 , 4.8 */
     private final KeepOutZone test_sphere_1 = new KeepOutZone(new SPoint(4, 0, 4.8), 1);
     private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(1,0,4.8), 2, 0.5, new SVector(1,0,0));
     private final KeepOutZone[] keepOutZones= {test_sphere_1, test_ring_1};
@@ -249,23 +254,15 @@ public class ApiCommandImplementation {
 
         // First, stop all motion
         Result result = stopAllMotion();
-
         if (result.hasSucceeded()) {
             // We stopped, do your stuff now
-           // if (validWaypoint(goalPoint)) {
-                logger.info("Planner is " + plannerType.toString());
-                logger.info("Moving the bee");
 
-                // Setting a simple movement command using the end point and the end orientation.
-                PendingResult pending = robot.simpleMove6DOF(goalPoint, orientation);
+            // Setting a simple movement command using the end point and the end orientation.
+            PendingResult pending = robot.simpleMove6DOF(goalPoint, orientation);
 
-                // Get the command execution result and send it back to the requester.
-                result = getCommandResult(pending, true);
-            } else {
-                logger.error("Your goal point is invalid, will collide with an object.");
-                result = stopAllMotion();
-            }
-        //}
+            // Get the command execution result and send it back to the requester.
+            result = getCommandResult(pending, true);
+        }
         return result;
     }
 
@@ -292,10 +289,33 @@ public class ApiCommandImplementation {
         }
         if (projections.contains(0)) {
             System.out.println("returns were" + projections);
+            System.out.println("movement failed");
             return false;
         } else {
             System.out.println("returns were" + projections);
             return true;
+        }
+    }
+
+    /**
+     * It moves Astrobee to the given point and rotate it to the given orientation.
+     * IFF valid wayPoint returns true
+     *
+     * @param goalPoint   Absolute cardinal point (xyz)
+     * @param orientation An instance of the Quaternion class.
+     *                    You may want to use INITIAL_POSITION as an example.
+     * @return An int corresponding to the result of the action.
+     */
+    public int moveToValid(Point goalPoint, Quaternion orientation) {
+        if (!validWaypoint(goalPoint)) {
+            return VALIDATE_ERROR;
+        } else {
+            Result movement_result = moveTo(goalPoint, orientation);
+            if (!movement_result.hasSucceeded()) {
+                return MOVE_TO_ERROR;
+            } else {
+                return SUCCESS;
+            }
         }
     }
 
@@ -315,7 +335,6 @@ public class ApiCommandImplementation {
         }
         logger.info("Hi, just finished startUp() command");
         return result;
-
     }
 
     public Result stopAllMotion() {
