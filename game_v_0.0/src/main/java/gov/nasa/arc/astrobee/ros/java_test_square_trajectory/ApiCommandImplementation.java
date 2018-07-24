@@ -78,6 +78,7 @@ public class ApiCommandImplementation {
 
     private GameManager game = new GameManager();
 
+
     //The Keep Out Zone(s)
     /* Astrobee should start at 2, 0 , 4.8 */
     private final KeepOutZone test_sphere_1 = new KeepOutZone(new SPoint(4, 0, 4.8), 1);
@@ -342,26 +343,25 @@ public class ApiCommandImplementation {
         return getCommandResult(pendingResult, false);
     }
 
-    public Result pollinate(FlashlightLocation flashlight, float brightness) {
+    public Result pollinate() throws InterruptedException {
 
         Kinematics k;
         k = robot.getCurrentKinematics();
-
+        robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
 
         SPoint rpy = SPoint.quat_rpy(k.getOrientation());
-        //SPoint plant = new SPoint(1, 0, 4.8);
+        SPoint lead = game.plants.plant_vec(game.plants.set_plant(), SPoint.toSPoint(k.getPosition()));
+        SPoint[] spawned = game.plants.spawn_plants(lead, 0);
 
-        //Plants xyz = new Plants(1, 1.5, plant);
         for(int i = 0; i < game.plant_number; i++) {
-            SPoint plantvec = game.plants.plant_vec(game.plants.plant_loc[i], SPoint.toSPoint(k.getPosition()));
-
-            double score = game.plants.score(plantvec, game.plants.rpy_cone(rpy));
+            double score = game.plants.score(spawned[i], game.plants.rpy_cone(rpy));
             System.out.println(score);
         }
         System.out.println("-----");
 
+        Thread.sleep(1000);
+        PendingResult pending = robot.setFlashlightBrightness(FlashlightLocation.FRONT, 0);
 
-        PendingResult pending = robot.setFlashlightBrightness(flashlight, brightness);
         Result result = getCommandResult(pending, false);
         return result;
     }

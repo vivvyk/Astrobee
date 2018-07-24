@@ -1,7 +1,6 @@
 package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 
 import gov.nasa.arc.astrobee.Result;
-import gov.nasa.arc.astrobee.types.FlashlightLocation;
 import gov.nasa.arc.astrobee.types.Point;
 import gov.nasa.arc.astrobee.types.Quaternion;
 
@@ -34,8 +33,8 @@ public class SampleTrajectory {
         Result result = null;
 
 
-        api.pollinate(FlashlightLocation.BACK, 0);
-        api.pollinate(FlashlightLocation.FRONT, 0);
+        //api.pollinate(FlashlightLocation.BACK, 0, 0);
+        //api.pollinate(FlashlightLocation.FRONT, 0, 0);
 
         // Loop the points and orientation previously defined.
         for (int i = 0; i < arrayOrient.length; i++) {
@@ -45,9 +44,7 @@ public class SampleTrajectory {
                 break;
             }else {
                 try {
-                    api.pollinate(FlashlightLocation.FRONT, 1);
-                    Thread.sleep(1000);
-                    api.pollinate(FlashlightLocation.FRONT, 0);
+                    api.pollinate();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

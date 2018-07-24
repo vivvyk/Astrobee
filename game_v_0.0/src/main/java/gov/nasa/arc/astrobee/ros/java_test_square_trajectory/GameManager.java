@@ -5,9 +5,9 @@ public class GameManager {
     public double cone_height;
     public Plants plants;
     public int ring_radius;
-    public float center[] = new float[3];
-    public double inclination;
-    public double circ_s;
+    public SPoint center;
+    public SVector normal;
+    public double angular_velocity;
 
 
     public GameManager(){
@@ -15,14 +15,12 @@ public class GameManager {
         this.cone_height = 1.5;
         this.ring_radius = 1;
 
-        this.center[0] = 2.0f;
-        this.center[1] = 0.0f;
-        this.center[2] = 4.8f;
+        this.center = new SPoint(2.0, 0.0, 4.8);
+        this.normal = new SVector(0, 0, 1);
 
-        this.inclination = 0;
+        this.angular_velocity = Math.PI/2;
 
-        this.plants = new Plants(this.plant_number, this.cone_height);
-        this.circ_s = this.plants.init_plants(this.plants, this.plant_number, this.center, this.ring_radius, this.inclination);
+        this.plants = new Plants(this.plant_number, this.cone_height, this.center, this.ring_radius, this.normal, this.angular_velocity);
     }
 
     public static void main(String args[]) {

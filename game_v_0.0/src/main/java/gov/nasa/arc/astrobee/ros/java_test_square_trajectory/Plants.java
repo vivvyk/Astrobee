@@ -4,51 +4,108 @@ package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 public class Plants {
     private int plant_number;
     private double cone_height;
-    public SPoint[] plant_loc;
+    public SPoint center;
+    private double inner_radius;
+    private SVector normal;
+    private double angular_velocity;
 
-    public Plants(int plant_num, double cone_h) {
-        this.plant_number = plant_num;
-        this.cone_height = cone_h;
-        this.plant_loc = new SPoint[this.plant_number];
+    public Plants(int plant_number, double cone_height, SPoint center, double inner_radius, SVector normal, double angular_velocity) {
+        this.plant_number = plant_number;
+        this.cone_height = cone_height;
+        this.center = center;
+        this.inner_radius = inner_radius;
+        this.normal = normal;
+        this.normal.normalize();
+        this.angular_velocity = angular_velocity;
+
     }
 
-    public double init_plants(Plants plants, int plantnum, float center[], int radius, double inclination){
-        double azimuth = 0;
-        double delta_angles = (2 * Math.PI) / plantnum;
-        double m = 0;
-        double z = 0;
+    public SPoint set_plant(){
 
-        for(int i = 0; i < plantnum; i++){
-            double x = center[0] + radius * Math.cos(azimuth);
-            double y = center[1] + radius * Math.sin(azimuth);
-            //double z = (center[2] + radius * Math.cos(inclination));
-            if(i==0){
-                z = center[2] + radius * Math.cos(inclination);
-                if(x - center[0] == 0.0) {
-                    x += 0.001;
-                }
-                m = (z - center[2]) / (x - center[0]);
-            }else{
-                z = center[2] + m*x;
-            }
-            plants.plant_loc[i] = new SPoint(x, y, z);
-            azimuth += delta_angles;
+        int max = 5;
+        int min = 1;
+        int range = max - min + 1;
+
+        if(this.normal.x == 0.0 && this.normal.y == 0.0 && this.normal.z == 0.0){
+            System.out.println("IMPROPER NORMAL VECTOR");
+            SPoint failure = new SPoint(0,0,0);
+            return failure;
+
         }
-        return m;
+
+        int rand1, rand2 = 0;
+        SPoint pv = new SPoint(0.0, 0.0, 0.0);
+
+        if(this.normal.x != 0.0){
+            rand1 = (int)(Math.random() * range) + min;
+            rand2 = (int)(Math.random() * range) + min;
+            pv.set_y(rand1);
+            pv.set_z(rand2);
+            double x = -1 * (this.normal.y * pv.get_y() + this.normal.z * pv.get_z()) / this.normal.x;
+            pv.set_x(x);
+        }else if(this.normal.y != 0.0){
+            rand1 = (int)(Math.random() * range) + min;
+            rand2 = (int)(Math.random() * range) + min;
+            pv.set_x(rand1);
+            pv.set_z(rand2);
+            double y = -1 * (this.normal.x * pv.get_x() + this.normal.z * pv.get_z()) / this.normal.y;
+            pv.set_y(y);
+        }else if(this.normal.z != 0.0){
+            rand1 = (int)(Math.random() * range) + min;
+            rand2 = (int)(Math.random() * range) + min;
+            pv.set_x(rand1);
+            pv.set_y(rand2);
+            double z = -1 * (this.normal.x * pv.get_x() + this.normal.y * pv.get_y()) /this.normal.z;
+            pv.set_z(z);
+        }else{
+            System.out.println("IMPROPER NORMAL VECTOR");
+            SPoint failure = new SPoint(0,0,0);
+            return failure;
+        }
+
+        double new_mag = this.inner_radius;
+        double mag = SPoint.magnitude(pv);
+
+        double n_x = pv.get_x() * new_mag/mag + this.center.get_x();
+        double n_y = pv.get_y() * new_mag/mag + this.center.get_y();
+        double n_z = pv.get_z() * new_mag/mag + this.center.get_z();
+
+        SPoint leadplant = new SPoint(n_x, n_y, n_z);
+        return leadplant;
+
+
     }
 
-    public void move_plants(Plants plants, int plantnum, float center[], int radius, double inclination, int step_size){
-        double new_azimuth = 0;
-        for(int i = 0; i < plantnum; i++){
-            new_azimuth = Math.atan((plants.plant_loc[i].get_y() - center[1])/(plants.plant_loc[i].get_x() - center[0])) + step_size;
-            if(new_azimuth >= 2*Math.PI){
-                new_azimuth = 0;
+    public SPoint[] spawn_plants(SPoint leadplant, int time){
+        double delta_t = (2 * Math.PI) / this.plant_number;
+        SPoint[] plants = new SPoint[this.plant_number];
+        SVector leadplant_vec = new SVector(leadplant.get_x(), leadplant.get_y(), leadplant.get_z());
+
+        double theta = (time * this.angular_velocity) % (2 * Math.PI);
+
+        SPoint new_leadplant = rodriguez_rotation(this.normal, leadplant_vec, theta);
+        SVector new_leadplantv = new SVector(new_leadplant.get_x(), new_leadplant.get_y(), new_leadplant.get_z());
+
+        for(int i = 0; i < this.plant_number; i++){
+            if(i == 0){
+                plants[i] = new_leadplant;
+                theta += delta_t;
+                continue;
             }
-            double x = center[0] + radius * Math.sin(inclination) * Math.cos(new_azimuth);
-            double y = center[1] + radius * Math.sin(inclination) * Math.sin(new_azimuth);
-            double z = center[2] + radius * Math.cos(inclination);
-            plants.plant_loc[i] = new SPoint(x, y, z);
+            plants[i] = rodriguez_rotation(this.normal, new_leadplantv, theta);
+            theta += delta_t;
         }
+        return plants;
+
+    }
+
+    public SPoint rodriguez_rotation(SVector k, SVector v, double theta){
+        SVector e1 = v.scalarMult(Math.cos(theta));
+        SVector e2 = SVector.cross(k, v).scalarMult(Math.sin(theta));
+        SVector e3 = k.scalarMult(SVector.dot(k, v)*(1-Math.cos(theta)));
+
+        SPoint vrot = new SPoint(e1.x + e2.x + e3.x, e1.y + e2.y + e3.y, e1.z + e2.z + e3.z);
+        return vrot;
     }
 
     public SPoint rpy_cone(SPoint rpy){
@@ -100,6 +157,28 @@ public class Plants {
        System.out.println("MISSED");
        return 0;
 
+    }
+
+    public static void main(String args[]){
+        Plants plant = new Plants(4, 1.5, new SPoint(2, 0, 4.8), 1, new SVector(0, 1, 0), Math.PI/2);
+        SPoint lead = plant.plant_vec(plant.set_plant(), plant.center);
+        //System.out.println(p1.toString());
+        SPoint[] ps = plant.spawn_plants(lead, 0);
+        for(int i = 0; i < 4; i++){
+            System.out.println(ps[i].toString());
+        }
+
+        /*
+        SVector k = new SVector(1, 0, 0);
+        SVector v = new SVector(0, 0, 1);
+        double theta = 0;
+        SVector e1 = v.scalarMult(Math.cos(theta));
+        SVector e2 = SVector.cross(k, v).scalarMult(Math.sin(theta));
+        SVector e3 = k.scalarMult(SVector.dot(k, v)*(1-Math.cos(theta)));
+
+        SVector vrot = new SVector(e1.x + e2.x + e3.x, e1.y + e2.y + e3.y, e1.z + e2.z + e3.z);
+        System.out.println(vrot.toString());
+        */
 
     }
 

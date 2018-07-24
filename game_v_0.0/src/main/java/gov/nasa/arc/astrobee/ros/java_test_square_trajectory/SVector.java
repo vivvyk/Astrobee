@@ -91,7 +91,16 @@ class SVector {
         this.z *= magnitude;
     }
 
-    public SVector scalarMultiply( double scalar){
+
+    public SVector scalarMult(double scalar){
+        SVector multiplied = new SVector(this);
+        multiplied.x *= scalar;
+        multiplied.y *= scalar;
+        multiplied.z *= scalar;
+        return multiplied;
+    }
+
+    public SVector scalarMultiply(double scalar){
         SVector multiplied = new SVector(this);
         multiplied.normalize();
         multiplied.x *= scalar;
