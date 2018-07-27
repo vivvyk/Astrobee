@@ -1,6 +1,11 @@
 package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 
 public class GameManager {
+    // Start the game wih two rings::
+    private KeepOutZoneRing ring1;
+    private KeepOutZoneRing ring2;
+    public KeepOutZoneRing[] rings = {ring1, ring2};
+
     public int plant_number;
     public double cone_height;
     public Plants plants;
@@ -27,7 +32,7 @@ public class GameManager {
         int degrees = 18;
         this.angular_velocity = degrees *  Math.PI/180;
 
-        this.ring = new KeepOutZoneRing(this.center, this.ring_radius, this.ring_radius+0.5, this.normal);
+        this.ring = new KeepOutZoneRing(this.center, this.ring_radius, 0.5, this.normal);
         this.plants = new Plants(this.plant_number, this.cone_height, this.center, this.ring_radius, this.normal, this.angular_velocity);
         init = this.plants.set_plant();
     }

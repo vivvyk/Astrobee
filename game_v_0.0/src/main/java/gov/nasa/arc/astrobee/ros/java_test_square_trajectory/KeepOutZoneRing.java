@@ -120,19 +120,27 @@ public class KeepOutZoneRing extends KeepOutZone {
         int num_points = points.size();
         double[] angle_lims = this.angle_limits_buffer(AB_collider_radius);
         Map<Integer, List<Object>> results = new HashMap<>();
+        System.out.println("The number of waypoints is:: " + num_points);
         for (int i = 0; i < num_points; i++) {
             List<Object> info = new ArrayList<>();
             double ab_dist_from_ring_center = lengths.get(i);
             if (ab_dist_from_ring_center <= proximity_threshold) {
+                System.out.println("#################");
+                System.out.println("Safe by proximity" + i);
                 info.add(1);
                 // If Astrobee is close enough to center, auto not colliding so we assign a 1
             } else {
                 double angle = angles.get(i);
+                // accessing the angle the astrobee vector makes with the normal vector
                 if (angle <= angle_lims[0] || angle >= angle_lims[1]) {
                     // If astrobee is outside angle of interest range, point is safe
+                    System.out.println("#################");
+                    System.out.println("Safe by angle lims (1)" + i);
                     info.add(1);
-                } else if (ab_dist_from_ring_center >= collision_threshold) {
+                } else if (ab_dist_from_ring_center > collision_threshold) {
                     // If astrobee is far enough away, no need to worry about collision checking
+                    System.out.println("#################");
+                    System.out.println("Safe by outside collision threshold " + i);
                     info.add(1);
                 } else {
                     SPlane ring_plane = new SPlane(this.normal_vec);
@@ -160,22 +168,38 @@ public class KeepOutZoneRing extends KeepOutZone {
                     // assign the vector accordingly
                     if (semi_cir_to_ab.length() > this.semi_circle_radius+this.AB_collider_radius){
                         info.add(1);
+                        System.out.println("#################");
+                        System.out.println("Safe by far away enough from semicircle center "+i);
                     } else {
                         double semi_circle_angle = semi_cir_to_ab.getAngleDeg(this.normal_vec);
                         // we use the OG normal vec since it is still parallel to the semi circle base
                         double hypotenuse_lim = this.getHypotenuse(this._radius, semi_cir_to_ab.length());
+                        /*
+                        *   The astrobee's position relative to the semicircle center can be defined by
+                        *   an angle, but we need to know which "side" of the semicircle the astrobee is on.
+                        *   The hyp_lim provides this by defining a certain length over which we know
+                        *   the astrobee is on the side of the semicircle, by properties of right triangles.
+                         */
                         if (ab_dist_from_ring_center >= hypotenuse_lim){
                             // in the case that length is greater than hyp_lim, we know AB is on OUTSIDE OF CIRCLE
                             info.add(0);
+                            System.out.println("hyp lim:: "+hypotenuse_lim);
+                            System.out.println("#################");
+                            System.out.println("Failed by bumping into outside "+i);
                         } else {
-                            // in the case that the length is shorter than hyp_lim, we know the astrobee is on the side closer to the semi-circle base
+                            // in the case that the length is shorter than hyp_lim, we know the astrobee is on the side closer to the ring center
                             double[] in_angle_lims = this.angle_limts_spec(AB_collider_radius, semi_circle_radius);
                             if (semi_circle_angle > in_angle_lims[0] && semi_circle_angle < in_angle_lims[1]){
                                 // In this case, Astrobee is close to the flat side of the semicircle
-                                double length_limit = semi_cir_to_ab.length() / Math.sin(semi_circle_angle);
+                                double length_limit = semi_cir_to_ab.length() / Math.sin(Math.toRadians(semi_circle_angle));
                                 if (length_limit > AB_collider_radius){
                                     info.add(1);
-                                } else { info.add(0); }
+                                    System.out.println("Safe by distance from inner wall "+i);
+                                } else {
+                                    info.add(0);
+                                    System.out.println("#################");
+                                    System.out.println("Failed by bumping into semicircle wall "+i);
+                                }
                             } else {
                                 SPoint corner1 = semi_circle_center.shift(this.normal_vec.scalarMultiply(this.semi_circle_radius));
                                 SPoint corner2 = semi_circle_center.shift(this.normal_vec.scalarMultiply(this.semi_circle_radius).negate());
@@ -183,7 +207,13 @@ public class KeepOutZoneRing extends KeepOutZone {
                                 SVector corner2_to_ab = SVector.genVec(corner2, cur_pos);
                                 if (corner1_to_ab.length() < AB_collider_radius || corner2_to_ab.length() < AB_collider_radius){
                                     info.add(0);
-                                } else { info.add(1); }
+                                    System.out.println("#################");
+                                    System.out.println("Failed by hitting semicircle conrer "+i);
+                                } else {
+                                    info.add(1);
+                                    System.out.println("#################");
+                                    System.out.println("Safe by avoiding corner "+i);
+                                }
                             }
                         }
                     }
@@ -195,6 +225,7 @@ public class KeepOutZoneRing extends KeepOutZone {
             info.add(angles.get(i));
             results.put(i, info);
         }
+        System.out.println("Results are:: " + results);
         return results;
     }
 /*

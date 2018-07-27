@@ -14,8 +14,7 @@ public class KeepOutZone {
     protected SPoint _center;
     protected String _shape;
     protected double _radius;
-    protected final double AB_collider_radius = 0.26;
-    protected final double AB_collider_step = 0.26 * 2;
+    protected static final double AB_collider_radius = 0.26;
 
 
     public KeepOutZone(SPoint center, double radius){

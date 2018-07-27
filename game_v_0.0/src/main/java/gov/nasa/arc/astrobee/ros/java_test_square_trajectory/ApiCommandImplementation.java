@@ -81,9 +81,9 @@ public class ApiCommandImplementation {
 
     //The Keep Out Zone(s)
     /* Astrobee should start at 2, 0 , 4.8 */
-    private final KeepOutZone test_sphere_1 = new KeepOutZone(new SPoint(4, 0, 4.8), 1);
-    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(1,0,4.8), 2, 0.5, new SVector(1,0,0));
-    private final KeepOutZone[] keepOutZones= {test_sphere_1, test_ring_1};
+    // private final KeepOutZone test_sphere_1 = new KeepOutZone(new SPoint(4, 0, 4.8), 1);
+    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(1,0,4.8), 0.6, 0.5, new SVector(1,0,0));
+    private final KeepOutZone[] keepOutZones= {/*test_sphere_1,*/ test_ring_1};
 
     /**
      * Private constructor that prevents other objects from creating instances of this class.
@@ -164,18 +164,18 @@ public class ApiCommandImplementation {
             while (!pending.isFinished()) {
                 if (printRobotPosition) {
                     // Meanwhile, let's get the positioning along the trajectory
-                    /*
 
-                    k = robot.getCurrentKinematics();
-                    rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
+                    //k = robot.getCurrentKinematics();
+                    /*
+                    //rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
 
                     System.out.println(k.getPosition().toString());
-                    System.out.println(xyz.rpy_cone(rollpitchyaw).toString());
+                    //System.out.println(xyz.rpy_cone(rollpitchyaw).toString());
 
-                    SPoint plantvec = xyz.plant_vec(plant.toSPoint(k.getPosition()), plant);
-                    System.out.println(plantvec.toString());
+                    //SPoint plantvec = xyz.plant_vec(plant.toSPoint(k.getPosition()), plant);
+                    //System.out.println(plantvec.toString());
 
-                    System.out.print(xyz.score(plantvec, xyz.rpy_cone(rollpitchyaw)));
+                    //System.out.print(xyz.score(plantvec, xyz.rpy_cone(rollpitchyaw)));
                     System.out.println("-----");
                     */
 
@@ -250,9 +250,6 @@ public class ApiCommandImplementation {
      */
     public Result moveTo(Point goalPoint, Quaternion orientation) {
 
-        //TODO:: restrict moveTo() for only validWaypoint()
-        //TODO:: aka add an if statement with vlaid waypoint checker
-
         // First, stop all motion
         Result result = stopAllMotion();
         if (result.hasSucceeded()) {
@@ -320,23 +317,6 @@ public class ApiCommandImplementation {
         }
     }
 
-    //  THIS COMMAND MAY NOT BE AVAILABLE TO STUDENTS, MAYBE USED TO START GAME
-    // FAILED, prepare() command not available in "operating state"
-    public Result startUp(){
-        // First, make sure not moving
-        Result result = stopAllMotion();
-        logger.info("Hi, just started startUp() command");
-
-        if (result.hasSucceeded()) {
-            // Setting the mobility prepare command to get the robot ready to move
-            PendingResult pending = robot.prepare();
-
-            // Get the result of command execution to send back
-            result = getCommandResult(pending, true);
-        }
-        logger.info("Hi, just finished startUp() command");
-        return result;
-    }
 
     public Result stopAllMotion() {
         PendingResult pendingResult = robot.stopAllMotion();
