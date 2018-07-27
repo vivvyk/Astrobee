@@ -82,6 +82,7 @@ public class Plants {
         SVector leadplant_vec = new SVector(leadplant.get_x(), leadplant.get_y(), leadplant.get_z());
 
         double theta = (time * this.angular_velocity) % (2 * Math.PI);
+        double theta_s = 0.0;
 
         SPoint new_leadplant = rodriguez_rotation(this.normal, leadplant_vec, theta);
         SVector new_leadplantv = new SVector(new_leadplant.get_x(), new_leadplant.get_y(), new_leadplant.get_z());
@@ -89,11 +90,11 @@ public class Plants {
         for(int i = 0; i < this.plant_number; i++){
             if(i == 0){
                 plants[i] = new_leadplant;
-                theta += delta_t;
+                theta_s += delta_t;
                 continue;
             }
-            plants[i] = rodriguez_rotation(this.normal, new_leadplantv, theta);
-            theta += delta_t;
+            plants[i] = rodriguez_rotation(this.normal, new_leadplantv, theta_s);
+            theta_s += delta_t;
         }
         return plants;
 
@@ -160,7 +161,8 @@ public class Plants {
     }
 
     public static void main(String args[]){
-        Plants plant = new Plants(4, 1.5, new SPoint(2, 0, 4.8), 1, new SVector(0, 1, 0), Math.PI/2);
+        Plants plant = new Plants(4, 1.5, new SPoint(2, 0, 4.8), 1, new SVector(0, 0, 1), Math.PI/2);
+
         SPoint lead = plant.plant_vec(plant.set_plant(), plant.center);
         //System.out.println(p1.toString());
         SPoint[] ps = plant.spawn_plants(lead, 0);
