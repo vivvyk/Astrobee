@@ -347,11 +347,21 @@ public class ApiCommandImplementation {
 
         Kinematics k;
         k = robot.getCurrentKinematics();
-        robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
+        //robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
 
         SPoint rpy = SPoint.quat_rpy(k.getOrientation());
-        SPoint lead = game.plants.plant_vec(game.plants.set_plant(), SPoint.toSPoint(k.getPosition()));
-        SPoint[] spawned = game.plants.spawn_plants(lead, 0);
+        SPoint lead = game.plants.plant_vec(game.init, SPoint.toSPoint(k.getPosition()));
+        SPoint[] spawned = game.plants.spawn_plants(lead, (int) game.ctime.getTime());
+
+
+        if(game.ctime.getTime() % 10 == 0){
+            for(int i = 0; i < spawned.length; i++){
+                System.out.println(spawned[i].toString());
+            }
+        }
+        System.out.println("---------");
+
+        /*
 
         for(int i = 0; i < game.plant_number; i++) {
             double score = game.plants.score(spawned[i], game.plants.rpy_cone(rpy));
@@ -360,9 +370,11 @@ public class ApiCommandImplementation {
         System.out.println("-----");
 
         Thread.sleep(1000);
-        PendingResult pending = robot.setFlashlightBrightness(FlashlightLocation.FRONT, 0);
+        */
+        //PendingResult pending = robot.setFlashlightBrightness(FlashlightLocation.FRONT, 0);
 
-        Result result = getCommandResult(pending, false);
+        //Result result = getCommandResult(pending, false);
+        Result result = null;
         return result;
     }
 
