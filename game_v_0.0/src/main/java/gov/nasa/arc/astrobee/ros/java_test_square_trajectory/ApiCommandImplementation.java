@@ -347,34 +347,49 @@ public class ApiCommandImplementation {
 
         Kinematics k;
         k = robot.getCurrentKinematics();
-        //robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
+        robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
 
+        SPoint pos = SPoint.toSPoint(k.getPosition());
+        SPoint approxpos = new SPoint(Math.round(pos.get_x() * 10.0)/10.0,Math.round(pos.get_y() * 10.0)/10.0,0);
         SPoint rpy = SPoint.quat_rpy(k.getOrientation());
-        SPoint lead = game.plants.plant_vec(game.init, SPoint.toSPoint(k.getPosition()));
-        SPoint[] spawned = game.plants.spawn_plants(lead, (int) game.ctime.getTime());
+
+        if(approxpos.get_x() == 3.0 && approxpos.get_y() == 0.5) {
+            SPoint lead = game.plants1.plant_vec(game.init1, SPoint.toSPoint(k.getPosition()));
+            SPoint[] spawned = game.plants1.spawn_plants(lead, (int)game.ctime.getTime());
 
 
-        if(game.ctime.getTime() % 10 == 0){
-            for(int i = 0; i < spawned.length; i++){
-                System.out.println(spawned[i].toString());
+            for(int i = 0; i < game.plant_number; i++) {
+                boolean score = game.plants1.score(spawned[i], game.plants1.rpy_cone(rpy));
+                if(score){
+                    game.score = Plants.decide_score(i, game.score);
+                }
             }
+            System.out.print("CURRENT SCORE: ");
+            System.out.println(game.score);
+
+        }else if(approxpos.get_x() == 1 && approxpos.get_y() == -0.5){
+            SPoint lead = game.plants2.plant_vec(game.init2, SPoint.toSPoint(k.getPosition()));
+            SPoint[] spawned = game.plants2.spawn_plants(lead, (int) game.ctime.getTime());
+
+
+            for(int i = 0; i < game.plant_number; i++) {
+                boolean score = game.plants2.score(spawned[i], game.plants2.rpy_cone(rpy));
+                if(score){
+                    game.score = Plants.decide_score(i, game.score);
+                }
+            }
+            System.out.print("CURRENT SCORE: ");
+            System.out.println(game.score);
+        }else{
+            System.out.println("NOT IN RING");
+            game.score -= 50;
         }
-        System.out.println("---------");
 
-        /*
+        Thread.sleep(200);
 
-        for(int i = 0; i < game.plant_number; i++) {
-            double score = game.plants.score(spawned[i], game.plants.rpy_cone(rpy));
-            System.out.println(score);
-        }
-        System.out.println("-----");
+        PendingResult pending = robot.setFlashlightBrightness(FlashlightLocation.FRONT, 0);
 
-        Thread.sleep(1000);
-        */
-        //PendingResult pending = robot.setFlashlightBrightness(FlashlightLocation.FRONT, 0);
-
-        //Result result = getCommandResult(pending, false);
-        Result result = null;
+        Result result = getCommandResult(pending, false);
         return result;
     }
 
