@@ -35,7 +35,7 @@ public class Plants {
 
         int rand1, rand2 = 0;
         SPoint pv = new SPoint(0.0, 0.0, 0.0);
-
+        /*
         if(this.normal.x != 0.0){
             rand1 = (int)(Math.random() * range) + min;
             rand2 = (int)(Math.random() * range) + min;
@@ -61,14 +61,17 @@ public class Plants {
             System.out.println("IMPROPER NORMAL VECTOR");
             SPoint failure = new SPoint(0,0,0);
             return failure;
-        }
+        }*/
+        pv.set_x(0);
+        pv.set_y(0);
+        pv.set_z(this.inner_radius/this.normal.y);
 
-        double new_mag = this.inner_radius;
-        double mag = SPoint.magnitude(pv);
+        //double new_mag = this.inner_radius;
+        //double mag = SPoint.magnitude(pv);
 
-        double n_x = pv.get_x() * new_mag/mag + this.center.get_x();
-        double n_y = pv.get_y() * new_mag/mag + this.center.get_y();
-        double n_z = pv.get_z() * new_mag/mag + this.center.get_z();
+        double n_x = pv.get_x() + this.center.get_x(); // * new_mag/mag +
+        double n_y = pv.get_y() + this.center.get_y();
+        double n_z = pv.get_z() + this.center.get_z();
 
         SPoint leadplant = new SPoint(n_x, n_y, n_z);
         return leadplant;
@@ -138,7 +141,7 @@ public class Plants {
         }
     }
 
-    public int score(SPoint plantv, SPoint conev){
+    public boolean score(SPoint plantv, SPoint conev){
        double plant_proj = scalar_projection(conev, plantv);
 
        System.out.println("PROJECTION");
@@ -146,25 +149,45 @@ public class Plants {
 
        if(plant_proj > (this.cone_height) || plant_proj <= 0) {
            System.out.println("MISSED!");
-           return 0;
+           return false;
        }
 
        double dist_conev = Math.sqrt(Math.pow(SPoint.magnitude(plantv), 2) - Math.pow(plant_proj, 2));
        if(dist_conev <= (plant_proj)){
            System.out.println("SCORE!");
-           return 1;
+           return true;
        }
 
        System.out.println("MISSED");
-       return 0;
+       return false;
 
     }
 
+    public static int decide_score(int index, int score){
+        if(index == 0){
+            System.out.println("SCORED ON TOMATO");
+            score += 100;
+        }else if(index == 1){
+            System.out.println("SCORED ON FIREWEED");
+            score -= 50;
+        }else if(index == 2){
+            System.out.println("SCORED ON DANDELION");
+            score += 200;
+        }else if(index == 3){
+            System.out.println("SCORED ON HONEYSUCKLE");
+            score += 300;
+        }
+        return score;
+    }
+
     public static void main(String args[]){
-        Plants plant = new Plants(4, 1.5, new SPoint(2, 0, 4.8), 1, new SVector(0, 0, 1), Math.PI/2);
+        Plants plant = new Plants(4, 1.5, new SPoint(1, -0.5, 4.9), 0.6, new SVector(0, 1.0, 0), Math.PI/2);
 
         SPoint lead = plant.plant_vec(plant.set_plant(), plant.center);
-        //System.out.println(p1.toString());
+
+        System.out.println(lead.toString());
+
+
         SPoint[] ps = plant.spawn_plants(lead, 0);
         for(int i = 0; i < 4; i++){
             System.out.println(ps[i].toString());
