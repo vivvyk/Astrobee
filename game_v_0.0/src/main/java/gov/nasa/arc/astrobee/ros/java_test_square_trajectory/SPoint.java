@@ -9,13 +9,15 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 
+import static gov.nasa.arc.astrobee.ros.java_test_square_trajectory.KeepOutZone.AB_collider_radius;
+
 
 public class SPoint {
     private double _x;
     private double _y;
     private double _z;
     private double[] my_coords;
-    private static double AB_collider_step = 0.52;
+    protected static final double AB_collider_step = 0.4;
 
     public SPoint (double x, double y, double z){
         _x = x;
@@ -189,6 +191,7 @@ public class SPoint {
             double s_z = start_z + z_step * i;
             sPoints.add(new SPoint(s_x, s_y, s_z));
         }
+        // We need to add the endpoint to ensure we're testing all possible points
         sPoints.add(end);
         return sPoints;
     }

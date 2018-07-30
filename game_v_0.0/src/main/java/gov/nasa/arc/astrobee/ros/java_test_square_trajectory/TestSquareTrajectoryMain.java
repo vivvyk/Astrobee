@@ -9,11 +9,11 @@ public class TestSquareTrajectoryMain {
 
     // Fixed trajectory points
     private static final Point HOME_POSITION = new Point(2, 0, 4.8);
-    private static final Point POINT_1 = new Point(1, 0.6, 4.8);
-    private static final Point POINT_2 = new Point(5, 0.6, 5.1);
-    private static final Point POINT_3 = new Point(5, -0.3, 4.8);
-    private static final Point POINT_4 = new Point(1, -0.3, 4.8);
-    private static final Point POINT_5 = new Point(1, 0.6, 5.1);
+    private static final Point POINT_1 = new Point(1, 0, 4.9);
+    private static final Point POINT_2 = new Point(1, -0.6, 4.9);
+    private static final Point POINT_3 = new Point(3, 0, 4.9);
+    private static final Point POINT_4 = new Point(3, 0.6, 4.9);
+    private static final Point POINT_5 = new Point(0, 0.6, 5.1);
 
     // Fixed trajectory orientations (POINT_1 and 2 use default orientation)
     private static final Quaternion DEFAULT_ORIENT = new Quaternion();
@@ -21,8 +21,8 @@ public class TestSquareTrajectoryMain {
     private static final Quaternion ORIENT_4 = new Quaternion(0, 0, 1, 0);
 
     // Defining trajectory. Fixed positions and orientations. An orientation for each position.
-    private static Point[] arrayPoint = {POINT_1, POINT_2, POINT_3, POINT_4, POINT_1, POINT_5};
-    private static Quaternion[] arrayOrient = {DEFAULT_ORIENT, DEFAULT_ORIENT, ORIENT_3, ORIENT_4, DEFAULT_ORIENT, DEFAULT_ORIENT};
+    private static Point[] arrayPoint = {POINT_1, POINT_2, POINT_1, HOME_POSITION, POINT_3, POINT_4, POINT_5};
+    private static Quaternion[] arrayOrient = {DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT};
 
 
     public static void main(String[] args) {
@@ -32,9 +32,8 @@ public class TestSquareTrajectoryMain {
         // Get a unique instance of the Astrobee API in order to command the robot.
         ApiCommandImplementation api = ApiCommandImplementation.getInstance();
 
-
         // At the end of execution, this variable will contain the last command result. It may be useful
-        Result result = null;
+        //Result result = api.undock();
 
         //keep track of time to test timing of game
        // long start_time = System.currentTimeMillis();
@@ -46,12 +45,14 @@ public class TestSquareTrajectoryMain {
         for (int i = 0; i < arrayPoint.length; i++) {
             System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]));
             System.out.println("another loop");
-            result = api.moveTo(arrayPoint[i], arrayOrient[i]);
-            if (!result.hasSucceeded()) {
+            System.out.println(api.moveToValid(arrayPoint[i], arrayOrient[i]));
+            /*
+            if (!.hasSucceeded()) {
                 System.out.println("QUITTING");
                 // If any movement fails we cancel all execution.
                 break;
             }
+            */
         }
 
         /* Will print the elapsed time it took for the calls to execute above */
