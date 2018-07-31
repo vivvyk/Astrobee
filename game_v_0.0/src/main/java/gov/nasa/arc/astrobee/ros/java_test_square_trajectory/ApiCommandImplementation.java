@@ -79,11 +79,24 @@ public class ApiCommandImplementation {
     private GameManager game = new GameManager();
 
 
-    //The Keep Out Zone(s)
+    //The Game Variables
     /* Astrobee should start at 2, 0 , 4.8 */
-    private final KeepOutZoneRing test_ring_2 = new KeepOutZoneRing(new SPoint(1, -0.5, 4.9), 0.6, 0.2, new SVector(0,1,0));
-    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0));
-    private final KeepOutZone[] keepOutZones= {test_ring_2, test_ring_1};
+
+    /* Keep Out Zones */
+    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI);
+    private final KeepOutZoneRing test_ring_2 = new KeepOutZoneRing(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), Math.PI);
+    private final KeepOutZone[] keepOutZones= { test_ring_1, test_ring_2 };
+
+    /* Plants Objects */
+    private final Plants plants1 = new Plants(test_ring_1, 4);
+    private final Plants plants2 = new Plants(test_ring_2, 4);
+
+    /* Initial plant points */
+    private final SPoint initial_lead_plant_pos_1 = plants1.set_plant();
+    private final SPoint initial_lead_plant_pos_2 = plants2.set_plant();
+
+    /* Game score */
+
 
     /**
      * Private constructor that prevents other objects from creating instances of this class.
@@ -334,12 +347,12 @@ public class ApiCommandImplementation {
         SPoint rpy = SPoint.quat_rpy(k.getOrientation());
 
         if(approxpos.get_x() == 3.0 && approxpos.get_y() == 0.5) {
-            SPoint lead = game.plants1.plant_vec(game.init1, SPoint.toSPoint(k.getPosition()));
-            SPoint[] spawned = game.plants1.spawn_plants(lead, (int)game.ctime.getTime());
+            SPoint lead = plants1.plant_vec(initial_lead_plant_pos_1, SPoint.toSPoint(k.getPosition()));
+            SPoint[] spawned = plants1.spawn_plants(lead, (int)game.ctime.getTime());
 
 
-            for(int i = 0; i < game.plant_number; i++) {
-                boolean score = game.plants1.score(spawned[i], game.plants1.rpy_cone(rpy));
+            for(int i = 0; i < plants1.getPlant_number(); i++) {
+                boolean score = plants1.score(spawned[i], plants1.rpy_cone(rpy));
                 if(score){
                     game.score = Plants.decide_score(i, game.score);
                 }
@@ -348,12 +361,12 @@ public class ApiCommandImplementation {
             System.out.println(game.score);
 
         }else if(approxpos.get_x() == 1 && approxpos.get_y() == -0.5){
-            SPoint lead = game.plants2.plant_vec(game.init2, SPoint.toSPoint(k.getPosition()));
-            SPoint[] spawned = game.plants2.spawn_plants(lead, (int) game.ctime.getTime());
+            SPoint lead = plants2.plant_vec(initial_lead_plant_pos_2, SPoint.toSPoint(k.getPosition()));
+            SPoint[] spawned = plants2.spawn_plants(lead, (int) game.ctime.getTime());
 
 
-            for(int i = 0; i < game.plant_number; i++) {
-                boolean score = game.plants2.score(spawned[i], game.plants2.rpy_cone(rpy));
+            for(int i = 0; i < plants2.getPlant_number(); i++) {
+                boolean score = plants2.score(spawned[i], plants2.rpy_cone(rpy));
                 if(score){
                     game.score = Plants.decide_score(i, game.score);
                 }

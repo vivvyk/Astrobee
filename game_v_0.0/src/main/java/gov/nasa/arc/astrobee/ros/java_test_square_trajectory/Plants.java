@@ -2,24 +2,33 @@ package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 
 
 public class Plants {
-    private int plant_number;
-    private double cone_height;
-    public SPoint center;
-    private double inner_radius;
-    private SVector normal;
-    private double angular_velocity;
+    private final int plant_number;
+    private final double cone_height;
+    private final SPoint center;
+    private final double inner_radius;
+    private final SVector normal;
+    private final double angular_velocity;
 
-    public Plants(int plant_number, double cone_height, SPoint center, double inner_radius, SVector normal, double angular_velocity) {
+    public Plants(KeepOutZoneRing ring, int plant_number) {
         this.plant_number = plant_number;
-        this.cone_height = cone_height;
-        this.center = center;
-        this.inner_radius = inner_radius;
-        this.normal = normal;
-        this.normal.normalize();
-        this.angular_velocity = angular_velocity;
-
+        this.cone_height = ring.get_radius() + 0.2;
+        this.center = ring.get_center();
+        this.inner_radius = ring.get_radius();
+        this.normal = ring.getNormal_vec();
+        this.angular_velocity = ring.getAng_vel();
     }
 
+    public int getPlant_number() {
+        return plant_number;
+    }
+
+    /**
+     * sets the initial plant position for the red flower plant
+     *
+     * @return:: SPoint of the initial plant position in world space
+     *
+     * TODO:: Fix so it works with any normal, not just <0,1,0> or <0,-1,0>
+     */
     public SPoint set_plant(){
 
         int max = 5;
@@ -30,7 +39,6 @@ public class Plants {
             System.out.println("IMPROPER NORMAL VECTOR");
             SPoint failure = new SPoint(0,0,0);
             return failure;
-
         }
 
         int rand1, rand2 = 0;
@@ -75,16 +83,17 @@ public class Plants {
 
         SPoint leadplant = new SPoint(n_x, n_y, n_z);
         return leadplant;
-
-
     }
 
     public SPoint[] spawn_plants(SPoint leadplant, int time){
+        // separation angle b/w plants
         double delta_t = (2 * Math.PI) / this.plant_number;
+        // array to hold plant poses
         SPoint[] plants = new SPoint[this.plant_number];
         SVector leadplant_vec = new SVector(leadplant.get_x(), leadplant.get_y(), leadplant.get_z());
 
         double theta = (time * this.angular_velocity) % (2 * Math.PI);
+
         double theta_s = 0.0;
 
         SPoint new_leadplant = rodriguez_rotation(this.normal, leadplant_vec, theta);
@@ -113,7 +122,7 @@ public class Plants {
     }
 
     public SPoint rpy_cone(SPoint rpy){
-        double roll = rpy.get_x();
+
         double pitch = rpy.get_y();
         double yaw = rpy.get_z();
 
@@ -181,7 +190,7 @@ public class Plants {
     }
 
     public static void main(String args[]){
-        Plants plant = new Plants(4, 1.5, new SPoint(1, -0.5, 4.9), 0.6, new SVector(0, 1.0, 0), Math.PI/2);
+        Plants plant = new Plants(new KeepOutZoneRing(new SPoint(1, -0.5, 4.9), 0.6, 0.2, new SVector(0, 1.0, 0), Math.PI/2), 4);
 
         SPoint lead = plant.plant_vec(plant.set_plant(), plant.center);
 

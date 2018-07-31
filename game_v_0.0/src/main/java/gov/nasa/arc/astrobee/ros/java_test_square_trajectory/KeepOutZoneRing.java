@@ -9,9 +9,10 @@ import java.util.Map;
 public class KeepOutZoneRing extends KeepOutZone {
 
     private double semi_circle_radius;
+    private double ang_vel;
     private SVector normal_vec;
 
-    public KeepOutZoneRing(SPoint center, double inner_radius, double second_radius, SVector normal){
+    public KeepOutZoneRing(SPoint center, double inner_radius, double semi_circle_radius, SVector normal, double ang_vel){
         /*
         *   extends the keep out zone class for a ring, which will be sued to hold the "plants" in space
         *   for the game. Adds two fields, the semicircle radius of the ring, and the normal vector to the
@@ -20,16 +21,20 @@ public class KeepOutZoneRing extends KeepOutZone {
          */
         super(center, inner_radius);
         this._shape = "RING";
-        semi_circle_radius = second_radius;
+        this.semi_circle_radius = semi_circle_radius;
         if (normal.length() != 1){
             normal.normalize();
         }
         normal_vec = normal;
+        this.ang_vel = ang_vel;
     }
+
 
     public double getSemi_circle_radius() { return semi_circle_radius; }
 
     public SVector getNormal_vec(){ return normal_vec; }
+
+    public double getAng_vel() {return ang_vel; }
 
     protected void setSemi_circle_radius(double second_radius){ this.semi_circle_radius = second_radius; }
 

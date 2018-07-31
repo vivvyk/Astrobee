@@ -4,15 +4,17 @@ import gov.nasa.arc.astrobee.types.Point;
 import gov.nasa.arc.astrobee.types.Quaternion;
 import gov.nasa.arc.astrobee.Result;
 
+import static java.lang.Thread.*;
+
 
 public class TestSquareTrajectoryMain {
 
     // Fixed trajectory points
     private static final Point HOME_POSITION = new Point(2, 0, 4.8);
     private static final Point POINT_1 = new Point(1, 0, 4.9);
-    private static final Point POINT_2 = new Point(1, -0.6, 4.9);
+    private static final Point POINT_2 = new Point(1, -0.5, 4.9);
     private static final Point POINT_3 = new Point(3, 0, 4.9);
-    private static final Point POINT_4 = new Point(3, 0.6, 4.9);
+    private static final Point POINT_4 = new Point(3, 0.5, 4.9);
     private static final Point POINT_5 = new Point(0, 0.6, 5.1);
 
     // Fixed trajectory orientations (POINT_1 and 2 use default orientation)
@@ -25,9 +27,9 @@ public class TestSquareTrajectoryMain {
     private static Quaternion[] arrayOrient = {DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT};
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         // Because log4j doesn't do the needful
-        Thread.setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler());
+        setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler());
 
         // Get a unique instance of the Astrobee API in order to command the robot.
         ApiCommandImplementation api = ApiCommandImplementation.getInstance();
@@ -46,13 +48,11 @@ public class TestSquareTrajectoryMain {
             System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]));
             System.out.println("another loop");
             System.out.println(api.moveToValid(arrayPoint[i], arrayOrient[i]));
-            /*
-            if (!.hasSucceeded()) {
-                System.out.println("QUITTING");
-                // If any movement fails we cancel all execution.
-                break;
+            int counter = 3;
+            for (int c = 0; c < counter; c++) {
+                api.pollinate();
+                sleep(1000);
             }
-            */
         }
 
         /* Will print the elapsed time it took for the calls to execute above */
