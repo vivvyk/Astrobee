@@ -134,7 +134,14 @@ public class ApiCommandImplementation {
             logger.info("Connection Interrupted");
         }
 
-        time.exec(DefaultNodeMainExecutor.newDefault()); }
+        time.exec(DefaultNodeMainExecutor.newDefault());
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        start_time = time.getTime();
+    }
 
     /**
      * Static method that provides a unique instance of this class
@@ -142,7 +149,6 @@ public class ApiCommandImplementation {
      * @return A unique instance of this class ready to use
      */
     public static ApiCommandImplementation getInstance() {
-        start_time = time.getTime();
         if (instance == null) {
             instance = new ApiCommandImplementation();
         }
