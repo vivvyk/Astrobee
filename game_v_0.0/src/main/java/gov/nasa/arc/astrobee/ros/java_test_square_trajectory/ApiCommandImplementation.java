@@ -86,8 +86,8 @@ public class ApiCommandImplementation {
     private static int start_time = 0;
 
     /* Keep Out Zones */
-    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI);
-    private final KeepOutZoneRing test_ring_2 = new KeepOutZoneRing(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), Math.PI);
+    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), 0);
+    private final KeepOutZoneRing test_ring_2 = new KeepOutZoneRing(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), 0);
     private final KeepOutZone[] keepOutZones= { test_ring_1, test_ring_2 };
 
     /* Plants Objects */
@@ -309,11 +309,15 @@ public class ApiCommandImplementation {
             }
         }
         if (projections.contains(0)) {
+            /*
             System.out.println("returns were" + projections);
             System.out.println("movement failed");
+            */
             return false;
         } else {
+            /*
             System.out.println("returns were" + projections);
+            */
             return true;
         }
     }
