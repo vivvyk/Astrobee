@@ -140,7 +140,7 @@ public class ApiCommandImplementation {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        start_time = time.getTime();
+        start_time = time.getTime() - 1;
     }
 
     /**
