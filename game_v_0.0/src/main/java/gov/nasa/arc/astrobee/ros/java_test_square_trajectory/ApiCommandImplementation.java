@@ -41,6 +41,7 @@ import gov.nasa.arc.astrobee.types.Quaternion;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ros.node.DefaultNodeMainExecutor;
 
 /**
  * A simple API implementation tool that provides an easier way to work with the Astrobee API
@@ -81,6 +82,8 @@ public class ApiCommandImplementation {
 
     //The Game Variables
     /* Astrobee should start at 2, 0 , 4.8 */
+    private static Timer time = new Timer();
+    private static int start_time = 0;
 
     /* Keep Out Zones */
     private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI);
@@ -96,6 +99,7 @@ public class ApiCommandImplementation {
     private final SPoint initial_lead_plant_pos_2 = plants2.set_plant();
 
     /* Game score */
+    private int score = 0;
 
 
     /**
@@ -130,8 +134,7 @@ public class ApiCommandImplementation {
             logger.info("Connection Interrupted");
         }
 
-        //game = new GameManager(1, 1.5, new SPoint(1, 0, 4.5));
-    }
+        time.exec(DefaultNodeMainExecutor.newDefault()); }
 
     /**
      * Static method that provides a unique instance of this class
@@ -139,6 +142,7 @@ public class ApiCommandImplementation {
      * @return A unique instance of this class ready to use
      */
     public static ApiCommandImplementation getInstance() {
+        start_time = time.getTime();
         if (instance == null) {
             instance = new ApiCommandImplementation();
         }
@@ -330,6 +334,13 @@ public class ApiCommandImplementation {
         }
     }
 
+    public int getCurrentTime(){
+        System.out.println(start_time);
+        int currT  = time.getTime();
+        int currT_adjusted = currT - start_time;
+        return currT_adjusted;
+    }
+
 
     public Result stopAllMotion() {
         PendingResult pendingResult = robot.stopAllMotion();
@@ -346,33 +357,32 @@ public class ApiCommandImplementation {
         SPoint approxpos = new SPoint(Math.round(pos.get_x() * 10.0)/10.0,Math.round(pos.get_y() * 10.0)/10.0,0);
         SPoint rpy = SPoint.quat_rpy(k.getOrientation());
 
-        if(approxpos.get_x() == 3.0 && approxpos.get_y() == 0.5) {
+        if(approxpos.get_x() == this.test_ring_1._center.get_x() && approxpos.get_y() == this.test_ring_1._center.get_y()) {
             SPoint lead = plants1.plant_vec(initial_lead_plant_pos_1, SPoint.toSPoint(k.getPosition()));
-            SPoint[] spawned = plants1.spawn_plants(lead, (int)game.ctime.getTime());
+            SPoint[] spawned = plants1.spawn_plants(lead, getCurrentTime());
 
 
             for(int i = 0; i < plants1.getPlant_number(); i++) {
                 boolean score = plants1.score(spawned[i], plants1.rpy_cone(rpy));
                 if(score){
-                    game.score = Plants.decide_score(i, game.score);
+                    this.score = Plants.decide_score(i, this.score);
                 }
             }
             System.out.print("CURRENT SCORE: ");
             System.out.println(game.score);
 
-        }else if(approxpos.get_x() == 1 && approxpos.get_y() == -0.5){
+        }else if(approxpos.get_x() == this.test_ring_2._center.get_x() && approxpos.get_y() == this.test_ring_2._center.get_y()){
             SPoint lead = plants2.plant_vec(initial_lead_plant_pos_2, SPoint.toSPoint(k.getPosition()));
-            SPoint[] spawned = plants2.spawn_plants(lead, (int) game.ctime.getTime());
-
+            SPoint[] spawned = plants2.spawn_plants(lead, getCurrentTime());
 
             for(int i = 0; i < plants2.getPlant_number(); i++) {
                 boolean score = plants2.score(spawned[i], plants2.rpy_cone(rpy));
                 if(score){
-                    game.score = Plants.decide_score(i, game.score);
+                    this.score = Plants.decide_score(i, this.score);
                 }
             }
             System.out.print("CURRENT SCORE: ");
-            System.out.println(game.score);
+            System.out.println(this.score);
         }else{
             System.out.println("NOT IN RING");
             game.score -= 50;

@@ -1,42 +1,47 @@
 package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import org.ros.message.Time;
+import org.ros.node.*;
+import java.net.URI;
+
+import org.ros.node.NodeConfiguration;
+import org.ros.node.NodeMainExecutor;
 
 public class Timer {
     /*
         May consider setting game time AFTER 15/16 seconds the first time student code will be run due to the fact that
         the Astrobee takes about 15 seconds simulation time to begin to move.
      */
-    private static long time;
+    private static final URI ROS_MASTER_URI = URI.create("http://localhost:11311");
+    private static TimerNode timerNode = null;
 
-    // Constructor for a Timer Object to keep track of time
-    public Timer(long start_time){
-        time = start_time;
+    public static void exec(NodeMainExecutor nodeMainExecutor) {
+        timerNode = new TimerNode();
+
+        // Setting configurations for ROS Node
+        NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic("10.0.3.15");
+        nodeConfiguration.setMasterUri(ROS_MASTER_URI);
+
+        nodeMainExecutor.execute(timerNode, nodeConfiguration);
     }
 
-
-    public static void update(){
-        time += 1;
-    }
-
-    // Used to return the amount fo time that has passed for Timer Object
-    public static long getTime(){
-        return time;
+    public static int getTime(){
+        return timerNode.time.secs;
     }
 
     public static void main(String... args){
-        int timerange = 180;
-        for (int i = 0; i < timerange; i++) {
-            System.out.println(getTime());
+        Timer t = new Timer();
+        exec(DefaultNodeMainExecutor.newDefault());
+        for(int i =0; i<10; i++) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            update();
+            //System.out.println((((int)getTime().secs)));
         }
+
     }
+
 
 }

@@ -44,16 +44,24 @@ public class TestSquareTrajectoryMain {
 
 
         // Loop the points and orientation previously defined.
+        for(int i = 0; i < 100; i++) {
+            System.out.println("TIME");
+            System.out.println(api.getCurrentTime());
+            Thread.sleep(1000);
+        }
+
+        /*
         for (int i = 0; i < arrayPoint.length; i++) {
             System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]));
             System.out.println("another loop");
             System.out.println(api.moveToValid(arrayPoint[i], arrayOrient[i]));
             int counter = 3;
             for (int c = 0; c < counter; c++) {
-                api.pollinate();
+                System.out.println(api.getCurrentTime());
                 sleep(1000);
             }
         }
+        */
 
         /* Will print the elapsed time it took for the calls to execute above */
        // System.out.println("This is the amount of time it took::" + startUpTest.timeElapsed(System.currentTimeMillis()));

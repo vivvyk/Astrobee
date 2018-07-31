@@ -8,10 +8,8 @@ public class GameManager {
     public GameManager(){
 
         this.score = 0;
-
-        ctime = new Timer(0);
-        // not sure if needs to be removed yet
     }
+        //ctime = new Timer(0);
 
     public int getScore() {
         return score;
@@ -44,11 +42,11 @@ public class GameManager {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    ctime.update();
+                    //ctime.update();
                 }
             }
         });
-        time.start();
+        //time.start();
 
 
     }
