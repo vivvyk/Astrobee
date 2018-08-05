@@ -18,30 +18,24 @@
 
 package gov.nasa.arc.astrobee.ros.java_test_square_trajectory;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import gov.nasa.arc.astrobee.AstrobeeException;
-import gov.nasa.arc.astrobee.Kinematics;
-import gov.nasa.arc.astrobee.PendingResult;
-import gov.nasa.arc.astrobee.Result;
-import gov.nasa.arc.astrobee.Robot;
-import gov.nasa.arc.astrobee.RobotFactory;
-
+import gov.nasa.arc.astrobee.*;
 import gov.nasa.arc.astrobee.ros.DefaultRobotFactory;
 import gov.nasa.arc.astrobee.ros.RobotConfiguration;
 import gov.nasa.arc.astrobee.types.FlashlightLocation;
 import gov.nasa.arc.astrobee.types.PlannerType;
 import gov.nasa.arc.astrobee.types.Point;
 import gov.nasa.arc.astrobee.types.Quaternion;
-
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ros.node.DefaultNodeMainExecutor;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A simple API implementation tool that provides an easier way to work with the Astrobee API
@@ -62,6 +56,15 @@ public class ApiCommandImplementation {
     private static final int VALIDATE_ERROR = 0;
     private static final int MOVE_TO_ERROR = 1;
 
+
+    // VARS FOR RING SCORING RETURNS
+    private static final int SCORE_RING_ONE = 1;
+    private static final int SCORE_RING_TWO = 2;
+    private static final int MISS_ERROR = 0;
+    private static final int NOT_IN_RING_ERROR = -1;
+    private static final int FLASHLIGHT_ERROR = -2;
+
+
     // The instance to access this class
     private static ApiCommandImplementation instance = null;
 
@@ -81,26 +84,28 @@ public class ApiCommandImplementation {
 
 
     //The Game Variables
-    /* Astrobee should start at 2, 0 , 4.8 */
+    /* Astrobee should start at 2, 0, 4.8 */
+    // AB info object only hold info about pollen collection and general game logic stuffs
+    private static ABInfo myAstrobeeInfo = ABInfo.getABInfoInstance();
+
     private static Timer time = new Timer();
-    private static int start_time = 0;
+    private static double start_time = 0.0;
+
+    private static SQuaternion orient_manager = new SQuaternion(0, 0, 0, 1);
 
     /* Keep Out Zones */
-    private final KeepOutZoneRing test_ring_1 = new KeepOutZoneRing(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), 0);
-    private final KeepOutZoneRing test_ring_2 = new KeepOutZoneRing(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), 0);
-    private final KeepOutZone[] keepOutZones= { test_ring_1, test_ring_2 };
-
-    /* Plants Objects */
-    private final Plants plants1 = new Plants(test_ring_1, 4);
-    private final Plants plants2 = new Plants(test_ring_2, 4);
-
-    /* Initial plant points */
-    private final SPoint initial_lead_plant_pos_1 = plants1.set_plant();
-    private final SPoint initial_lead_plant_pos_2 = plants2.set_plant();
+    private final KeepOutZoneRingWPlants test_ring_1 = new KeepOutZoneRingWPlants(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI);
+    /*  ^^ Quaternion of [0.7071, 0, 0, 0.7071] ^^      */
+    private final KeepOutZoneRingWPlants test_ring_2 = new KeepOutZoneRingWPlants(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), Math.PI);
+    /*  ^^ Quaternion of [-0.7071, 0, 0, 0.7071] ^^    */
+    private final KeepOutZoneRingWPlants[] ringsWPlants = { test_ring_1, test_ring_2 };
 
     /* Game score */
     private int score = 0;
 
+    public int getScore() {
+        return ABInfo.getScore();
+    }
 
     /**
      * Private constructor that prevents other objects from creating instances of this class.
@@ -135,12 +140,12 @@ public class ApiCommandImplementation {
         }
 
         time.exec(DefaultNodeMainExecutor.newDefault());
+        orient_manager.exec(DefaultNodeMainExecutor.newDefault());
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        start_time = time.getTime() - 1;
     }
 
     /**
@@ -271,7 +276,7 @@ public class ApiCommandImplementation {
      * @return A Result instance carrying data related to the execution.
      * Returns null if the command was NOT execute as a result of an error
      */
-    public Result moveTo(Point goalPoint, Quaternion orientation) {
+    private Result moveTo(Point goalPoint, Quaternion orientation) {
 
         // First, stop all motion
         Result result = stopAllMotion();
@@ -298,10 +303,10 @@ public class ApiCommandImplementation {
         SPoint goal = new SPoint(goalPoint.getX(), goalPoint.getY(), goalPoint.getZ());
         ArrayList<Map<Integer, List<Object>>> results = new ArrayList<Map<Integer, List<Object>>>();
         ArrayList<Integer> projections = new ArrayList<Integer>();
-        int koz_count = keepOutZones.length;
+        int koz_count = ringsWPlants.length;
         for (int i = 0; i < koz_count; i++) {
             // iterates through the keepOutZones to check any collisions
-            results.add(keepOutZones[i].aB_path_projection(cur_pos, goal));
+            results.add(ringsWPlants[i].aB_path_projection(cur_pos, goal));
         }
         for (Map<Integer, List<Object>> result : results) {
             for (Map.Entry<Integer, List<Object>> entry : result.entrySet()) {
@@ -344,30 +349,42 @@ public class ApiCommandImplementation {
         }
     }
 
-    public int getCurrentTime(){
+    public double getCurrentTime(){
         System.out.println(start_time);
-        int currT  = time.getTime();
-        int currT_adjusted = currT - start_time;
+        double currT  = time.getTime();
+        System.out.println(currT);
+        double currT_adjusted = currT - start_time;
         return currT_adjusted;
     }
-
 
     public Result stopAllMotion() {
         PendingResult pendingResult = robot.stopAllMotion();
         return getCommandResult(pendingResult, false);
     }
 
-    public Result pollinate() throws InterruptedException {
+    /**
+     * TODO :: Make this return an array, first value being status (score, outside ring, flashlight error, etc), second being
+     * TODO :: ring, third being plant
+     *
+     * @return just an int for now
+     * @throws InterruptedException (in case flashlight fails or gets interrupted)
+     */
+/*
+    public int pollinate() {
 
         Kinematics k;
-        k = robot.getCurrentKinematics();
-        robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
+        k = getTrustedRobotKinematics();
+
+        int result;
 
         SPoint pos = SPoint.toSPoint(k.getPosition());
-        SPoint approxpos = new SPoint(Math.round(pos.get_x() * 10.0)/10.0,Math.round(pos.get_y() * 10.0)/10.0,0);
+        SPoint[] ring_centers = new SPoint[keepOutZones.length];
+        for (int i = 0; i < keepOutZones.length; i++)
+            ring_centers[i] = keepOutZones[i].get_center();
+        double[] distsSquared = pos.distSquared(ring_centers);
         SPoint rpy = SPoint.quat_rpy(k.getOrientation());
 
-        if(approxpos.get_x() == this.test_ring_1._center.get_x() && approxpos.get_y() == this.test_ring_1._center.get_y()) {
+        if (distsSquared[0] <= Math.pow(KeepOutZone.getAB_collider_radius(), 2)) {
             SPoint lead = plants1.plant_vec(initial_lead_plant_pos_1, SPoint.toSPoint(k.getPosition()));
             SPoint[] spawned = plants1.spawn_plants(lead, getCurrentTime());
 
@@ -379,9 +396,10 @@ public class ApiCommandImplementation {
                 }
             }
             System.out.print("CURRENT SCORE: ");
-            System.out.println(game.score);
+            System.out.println(this.score);
+            result = SCORE_RING_ONE;
 
-        }else if(approxpos.get_x() == this.test_ring_2._center.get_x() && approxpos.get_y() == this.test_ring_2._center.get_y()){
+        } else if (distsSquared[1] <= Math.pow(KeepOutZone.getAB_collider_radius(), 2)) {
             SPoint lead = plants2.plant_vec(initial_lead_plant_pos_2, SPoint.toSPoint(k.getPosition()));
             SPoint[] spawned = plants2.spawn_plants(lead, getCurrentTime());
 
@@ -393,16 +411,113 @@ public class ApiCommandImplementation {
             }
             System.out.print("CURRENT SCORE: ");
             System.out.println(this.score);
-        }else{
+            result = SCORE_RING_TWO;
+        } else {
             System.out.println("NOT IN RING");
             game.score -= 50;
+            result = NOT_IN_RING_ERROR;
         }
+        try {
+            Result flashlight = flashlight_shine();
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted Exception!");
+            result = FLASHLIGHT_ERROR;
+        }
+        return result;
+    }
+*/
 
-        Thread.sleep(200);
+    /*
+    *   returns an int code of result for each ring
+    *   -1 - no score
+    *   1 - score
+    *   also modifies the game score accordingly and keeps track of pollination attempts
+     */
+    public int pollinate() {
+
+        Kinematics k;
+        k = getTrustedRobotKinematics();
+
+        SPoint abPos = SPoint.toSPoint(k.getPosition());
+        SQuaternion abOrient = new SQuaternion(k.getOrientation());
+
+        int kozLength = ringsWPlants.length;
+        int[] results = new int[kozLength];
+
+        int outOfRingCount = 0;
+
+        ABInfo.incrementAttempts();
+
+        for (int i = 0; i < kozLength; i++) {
+            double distSquared = abPos.distSquared(ringsWPlants[i].get_center());
+            if (!(distSquared <= Math.pow(ABInfo.collider_radius, 2))) {
+                // too far away from ring center
+                results[i] = 0;
+                outOfRingCount++;
+            } else {
+                SQuaternion ringOrient;
+                if (i == 0) {
+                    ringOrient = SQuaternion.getRing1Quat();
+                } else if (i == 1) {
+                    ringOrient = SQuaternion.getRing2Quat();
+                } else break;
+                // newPollen being collected/given to, prevPollen is donor
+                String newPollen = ringsWPlants[i].scoreOnRing(abOrient, ringOrient);
+                String prevPollen = ABInfo.getPollenType();
+                if (StringUtils.isEmpty(newPollen)){
+                    results[i] = -1;
+                    ABInfo.changeScore(Pollen.getMissPenalty());
+                } else {
+                    results[i] = 1;
+                    ABInfo.incrementSuccess();
+                }
+                if (StringUtils.isNotEmpty(prevPollen) && StringUtils.isNotEmpty(newPollen)) {
+                    if (Pollen.prevCanGiveTo(prevPollen, newPollen)) {
+                        ABInfo.changeScore(Pollen.getPollinateScore(newPollen));
+                    } else {
+                        ABInfo.changeScore(Pollen.getMispollinatePenalty());
+                    }
+                }
+                ABInfo.setPollenType(newPollen);
+                ABInfo.changeScore(Pollen.getCollectionScore(newPollen));
+            }
+        }
+        try {
+            flashlightShine();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return FLASHLIGHT_ERROR;
+        }
+        for (int r = 0; r < results.length; r++) {
+            if (results[r] == 1) {
+                if (r == 0){
+                    return SCORE_RING_ONE;
+                } else
+                    return SCORE_RING_TWO;
+            }
+        }
+        if (outOfRingCount == kozLength) {
+            System.out.println("NOT IN ANY RINGS");
+            return NOT_IN_RING_ERROR;
+        }
+        return MISS_ERROR;
+    }
+
+    /**
+     * Method for shining the flashlight
+     * @return Whether or not the flashlight succesfully turned on
+     * @throws InterruptedException
+     */
+    private Result flashlightShine() throws InterruptedException {
+
+        robot.setFlashlightBrightness(FlashlightLocation.FRONT, 1);
+
+        Thread.sleep(100);
 
         PendingResult pending = robot.setFlashlightBrightness(FlashlightLocation.FRONT, 0);
 
         Result result = getCommandResult(pending, false);
+
         return result;
     }
 

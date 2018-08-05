@@ -9,15 +9,13 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 
-import static gov.nasa.arc.astrobee.ros.java_test_square_trajectory.KeepOutZone.AB_collider_radius;
-
 
 public class SPoint {
     private double _x;
     private double _y;
     private double _z;
     private double[] my_coords;
-    protected static final double AB_collider_step = 0.4;
+
 
     public SPoint (double x, double y, double z){
         _x = x;
@@ -83,6 +81,10 @@ public class SPoint {
         return mag;
     }
 
+    /*
+    *   Method commented out bc not needed and not in place in SPoint
+    *
+    *   TODO :: Find a place for this method, possibly in ZR API
     public static SPoint quat_rpy(Quaternion q) {
 
         // roll (x-axis rotation)
@@ -107,9 +109,8 @@ public class SPoint {
         SPoint rpy = new SPoint(roll, pitch, yaw);
 
         return rpy;
-
-
     }
+    */
 
     public static SPoint toSPoint(Point astrobee_point) {
         // converts the Astrobee Point to an SPoint object
@@ -118,6 +119,13 @@ public class SPoint {
         double an_z = astrobee_point.getZ();
         SPoint a_Point = new SPoint(an_x, an_y, an_z);
         return a_Point;
+    }
+
+    public static SPoint toSPoint(SVector v) {
+        double sx = v.x;
+        double sy = v.y;
+        double sz = v.z;
+        return new SPoint(sx, sy, sz);
     }
 
     public double dist(SPoint other) {
@@ -133,6 +141,14 @@ public class SPoint {
          *   more efficient than dist, use this for calculations
          */
         return Math.pow((_x - other.get_x()), 2.0) + Math.pow((_y - other.get_y()), 2.0) + Math.pow((_z - other.get_z()), 2.0);
+    }
+
+    public double[] distSquared(SPoint[] others) {
+        double[] dists_squared = new double[others.length];
+        for (int i = 0; i < others.length; i++) {
+            dists_squared[i] = this.distSquared(others[i]);
+        }
+        return dists_squared;
     }
 
     public boolean dist_greater_than(SPoint other, double limit) {
@@ -155,7 +171,7 @@ public class SPoint {
          *   start and end
          */
         ArrayList<SPoint> sPoints = new ArrayList<SPoint>();
-        int num_steps = (int) Math.ceil(start.dist(end) / AB_collider_step);
+        int num_steps = (int) Math.ceil(start.dist(end) / ABInfo.collider_radius);
         double start_x = start.get_x();
         double start_y = start.get_y();
         double start_z = start.get_z();
@@ -178,7 +194,7 @@ public class SPoint {
          *   SPoint to the end point
          */
         ArrayList<SPoint> sPoints = new ArrayList<SPoint>();
-        int num_steps = (int) Math.ceil(this.dist(end) / AB_collider_step);
+        int num_steps = (int) Math.ceil(this.dist(end) / ABInfo.collider_radius);
         double start_x = this.get_x();
         double start_y = this.get_y();
         double start_z = this.get_z();

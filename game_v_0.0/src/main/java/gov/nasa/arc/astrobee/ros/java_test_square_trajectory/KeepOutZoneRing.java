@@ -17,7 +17,7 @@ public class KeepOutZoneRing extends KeepOutZone {
         *   extends the keep out zone class for a ring, which will be sued to hold the "plants" in space
         *   for the game. Adds two fields, the semicircle radius of the ring, and the normal vector to the
         *   plane which the ring lies on.
-        *   Note: inner_radius should ALWAYS be GREATER than AB_collider_radius
+        *   Note: inner_radius should ALWAYS be GREATER than ABInfo.AB_collider_radius
          */
         super(center, inner_radius);
         this._shape = "RING";
@@ -82,16 +82,16 @@ public class KeepOutZoneRing extends KeepOutZone {
          *   if 1, astrobee will NOT collide on current path
          *   note that this projection is for a SPHERE KOZ
          */
-        double collision_threshold = this._radius + this.semi_circle_radius + AB_collider_radius;
+        double collision_threshold = this._radius + this.semi_circle_radius + ABInfo.collider_radius;
         // By default, the collision threshold will be set to AB collider + longest length vec inside ring
-        double proximity_threshold = this._radius - AB_collider_radius;
+        double proximity_threshold = this._radius - ABInfo.collider_radius;
         // If the Astrobee is within the proximity threshold, the AB should be safe from collision (since it so close to the center of the ring)
         ArrayList<SPoint> points = AB_pos.splitPath(AB_goal);
         ArrayList<SVector> vecs = SVector.genVecs(points, this._center);
         ArrayList<Double> lengths = SVector.lengths(vecs);
         ArrayList<Double> angles = SVector.getAnglesDeg(vecs, this.normal_vec);
         int num_points = points.size();
-        double[] angle_lims = this.angle_limits_buffer(AB_collider_radius);
+        double[] angle_lims = this.angle_limits_buffer(ABInfo.collider_radius);
         Map<Integer, List<Object>> results = new HashMap<>();
         /*
         System.out.println("The number of waypoints is:: " + num_points);
@@ -147,7 +147,7 @@ public class KeepOutZoneRing extends KeepOutZone {
                     if (c1_dist > c2_dist) { semi_circle_center = center_2; } else { semi_circle_center = center_1; }
                     SVector semi_cir_to_ab = SVector.genVec(cur_pos, semi_circle_center);
                     // assign the vector accordingly
-                    if (semi_cir_to_ab.length() > this.semi_circle_radius+this.AB_collider_radius){
+                    if (semi_cir_to_ab.length() > this.semi_circle_radius + ABInfo.collider_radius) {
                         info.add(1);
                         /*
                         System.out.println("#################");
@@ -163,7 +163,7 @@ public class KeepOutZoneRing extends KeepOutZone {
                         *   The hyp_lim provides this by defining a certain length over which we know
                         *   the astrobee is on the side of the semicircle, by properties of right triangles.
                          */
-                        if (ab_dist_from_ring_center >= hypotenuse_lim){
+                        if (ab_dist_from_ring_center >= hypotenuse_lim) {
                             // in the case that length is greater than hyp_lim, we know AB is on OUTSIDE OF CIRCLE
                             info.add(0);
                             /*
@@ -173,11 +173,11 @@ public class KeepOutZoneRing extends KeepOutZone {
                             */
                         } else {
                             // in the case that the length is shorter than hyp_lim, we know the astrobee is on the side closer to the ring center
-                            double[] in_angle_lims = this.angle_limts_spec(AB_collider_radius, semi_circle_radius);
-                            if (semi_circle_angle > in_angle_lims[0] && semi_circle_angle < in_angle_lims[1]){
+                            double[] in_angle_lims = this.angle_limts_spec(ABInfo.collider_radius, semi_circle_radius);
+                            if (semi_circle_angle > in_angle_lims[0] && semi_circle_angle < in_angle_lims[1]) {
                                 // In this case, Astrobee is close to the flat side of the semicircle
                                 double length_limit = semi_cir_to_ab.length() / Math.sin(Math.toRadians(semi_circle_angle));
-                                if (length_limit > AB_collider_radius){
+                                if (length_limit > ABInfo.collider_radius) {
                                     info.add(1);
                                     /*
                                     System.out.println("Safe by distance from inner wall "+i);
@@ -194,7 +194,7 @@ public class KeepOutZoneRing extends KeepOutZone {
                                 SPoint corner2 = semi_circle_center.shift(this.normal_vec.scalarMultiply(this.semi_circle_radius).negate());
                                 SVector corner1_to_ab = SVector.genVec(corner1, cur_pos);
                                 SVector corner2_to_ab = SVector.genVec(corner2, cur_pos);
-                                if (corner1_to_ab.length() < AB_collider_radius || corner2_to_ab.length() < AB_collider_radius){
+                                if (corner1_to_ab.length() < ABInfo.collider_radius || corner2_to_ab.length() < ABInfo.collider_radius) {
                                     info.add(0);
                                     /*
                                     System.out.println("#################");

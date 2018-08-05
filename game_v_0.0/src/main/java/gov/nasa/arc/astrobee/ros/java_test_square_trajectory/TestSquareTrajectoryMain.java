@@ -10,7 +10,7 @@ import static java.lang.Thread.*;
 public class TestSquareTrajectoryMain {
 
     // Fixed trajectory points
-    private static final Point HOME_POSITION = new Point(2, 0, 4.8);
+    private static final Point HOME_POSITION = new Point(2, 0, 4.9);
     private static final Point POINT_1 = new Point(1, 0, 4.9);
     private static final Point POINT_2 = new Point(1, -0.5, 4.9);
     private static final Point POINT_3 = new Point(3, 0, 4.9);
@@ -19,12 +19,19 @@ public class TestSquareTrajectoryMain {
 
     // Fixed trajectory orientations (POINT_1 and 2 use default orientation)
     private static final Quaternion DEFAULT_ORIENT = new Quaternion();
-    private static final Quaternion ORIENT_3 = new Quaternion(0, 0, -0.707f, 0.707f);
-    private static final Quaternion ORIENT_4 = new Quaternion(0, 0, 1, 0);
+    private static final Quaternion LEFT_FACING = new Quaternion(0.707f, 0, 0, 0.707f);
+    private static final Quaternion RIGHT_FACING = new Quaternion(-0.707f, 0, 0, 0.707f);
+    private static final Quaternion UP_FACING = new Quaternion(0, -0.707f, 0, 0.707f);
+    private static final Quaternion DOWN_FACING = new Quaternion(0, 0.707f, 0, 0.707f);
+    private static final Quaternion BACK_FACING = new Quaternion(0, 0, 1, 0);
+    private static final Quaternion ORIENT_1 = new Quaternion(0, -0.3827f, 0, 0.9239f);
+    private static final Quaternion ORIENT_2 = new Quaternion(0, -0.9239f, 0, 0.3827f);
+    private static final Quaternion ORIENT_3 = new Quaternion(0, 0.9239f, 0, 0.3827f);
+    private static final Quaternion ORIENT_4 = new Quaternion(0, 0.3827f, 0, 0.9239f);
 
     // Defining trajectory. Fixed positions and orientations. An orientation for each position.
-    private static Point[] arrayPoint = {POINT_1, POINT_2, POINT_1, HOME_POSITION, POINT_3, POINT_4, POINT_5};
-    private static Quaternion[] arrayOrient = {DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT, DEFAULT_ORIENT};
+    private static Point[] arrayPoint = { POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4};
+    private static Quaternion[] arrayOrient = { DEFAULT_ORIENT, ORIENT_1, DEFAULT_ORIENT, ORIENT_2, DEFAULT_ORIENT, ORIENT_3, DEFAULT_ORIENT, ORIENT_4};
 
 
     public static void main(String[] args) throws InterruptedException {
@@ -33,35 +40,34 @@ public class TestSquareTrajectoryMain {
 
         // Get a unique instance of the Astrobee API in order to command the robot.
         ApiCommandImplementation api = ApiCommandImplementation.getInstance();
+        ABInfo abInfo = ABInfo.getABInfoInstance();
 
-        // At the end of execution, this variable will contain the last command result. It may be useful
-        //Result result = api.undock();
-
-        //keep track of time to test timing of game
-       // long start_time = System.currentTimeMillis();
-       // System.out.println(start_time);
-       // Timer startUpTest = new Timer(start_time);
-
+        Result result;
 
         // Loop the points and orientation previously defined.
+        /*
         for(int i = 0; i < 100; i++) {
             System.out.println("TIME");
             System.out.println(api.getCurrentTime());
             Thread.sleep(1000);
         }
+        */
 
-        /*
         for (int i = 0; i < arrayPoint.length; i++) {
-            System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]));
+            System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]) + " with quat:: " + arrayOrient[i]);
             System.out.println("another loop");
             System.out.println(api.moveToValid(arrayPoint[i], arrayOrient[i]));
             int counter = 3;
             for (int c = 0; c < counter; c++) {
-                System.out.println(api.getCurrentTime());
+                if ( c % 2 == 1) {
+                    System.out.println(api.pollinate());
+                    System.out.println(api.getScore());
+                }
+                //System.out.println(api.getCurrentTime());
                 sleep(1000);
             }
         }
-        */
+
 
         /* Will print the elapsed time it took for the calls to execute above */
        // System.out.println("This is the amount of time it took::" + startUpTest.timeElapsed(System.currentTimeMillis()));
