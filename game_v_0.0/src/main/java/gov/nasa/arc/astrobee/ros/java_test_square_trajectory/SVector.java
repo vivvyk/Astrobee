@@ -23,6 +23,12 @@ class SVector {
         z = v.z;
     }
 
+    public SVector(SPoint p) {
+        x = p.get_x();
+        y = p.get_y();
+        z = p.get_z();
+    }
+
     // methods
 
     // Vector from this to B
@@ -84,25 +90,25 @@ class SVector {
         return new SVector(A.x * t, A.y * t, A.z * t);
     }
 
-    public void setMagnitude(double magnitude){
-        this.normalize();
-        this.x *= magnitude;
-        this.y *= magnitude;
-        this.z *= magnitude;
+    public static void setMagnitude(SVector a, double magnitude) {
+        a.normalize();
+        a.x *= magnitude;
+        a.y *= magnitude;
+        a.z *= magnitude;
     }
 
-
-    public SVector scalarMult(double scalar){
-        SVector multiplied = new SVector(this);
-        multiplied.x *= scalar;
-        multiplied.y *= scalar;
-        multiplied.z *= scalar;
-        return multiplied;
+    public SVector setMagnitude(double magnitude) {
+        SVector change = new SVector(this);
+        change.normalize();
+        change.x *= magnitude;
+        change.y *= magnitude;
+        change.z *= magnitude;
+        return change;
     }
+
 
     public SVector scalarMultiply(double scalar){
         SVector multiplied = new SVector(this);
-        multiplied.normalize();
         multiplied.x *= scalar;
         multiplied.y *= scalar;
         multiplied.z *= scalar;
@@ -116,8 +122,43 @@ class SVector {
         return new SVector(neg_x, neg_y, neg_z);
     }
 
+    public SVector add(SVector other) {
+        double new_x = this.x + other.x;
+        double new_y = this.y + other.y;
+        double new_z = this.z + other.z;
+        return new SVector(new_x, new_y, new_z);
+    }
+
     public String toString() {
         return new String("[" + SPoint.round(x, 3) + ", " + SPoint.round(y, 3) + ", " + SPoint.round(z, 3) + "]");
+    }
+
+    public static double scalar_projection(SVector vec1, SVector vec2){
+
+        //PROJECTION OF VEC2 ONTO VEC1
+        if(vec1.length() != 0.0) {
+            double scalar_p = vec1.dot(vec2) / vec1.length();
+            return scalar_p;
+        }else{
+            System.out.println("IMPROPER VECTOR PROJECTION: DIVISION BY ZERO");
+            return 0.0;
+        }
+    }
+
+
+    /**
+     * @param norm - normal vector to be rotated about
+     * @param vec - vector to be rotated about
+     * @param theta - angle amount to rotate by
+     * @return SVector of newly rotated vector
+     */
+    public static SVector rodriguezRotation(SVector norm, SVector vec, double theta){
+        SVector e1 = vec.scalarMultiply(Math.cos(theta));
+        SVector e2 = SVector.cross(norm, vec).scalarMultiply(Math.sin(theta));
+        SVector e3 = norm.scalarMultiply(SVector.dot(norm, vec)*(1-Math.cos(theta)));
+
+        SVector vrot = e1.add(e2).add(e3);
+        return vrot;
     }
 
     public static SVector genVec(SPoint a, SPoint b) {

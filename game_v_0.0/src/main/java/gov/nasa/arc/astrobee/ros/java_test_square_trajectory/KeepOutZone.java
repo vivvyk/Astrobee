@@ -14,7 +14,6 @@ public class KeepOutZone {
     protected SPoint _center;
     protected String _shape;
     protected double _radius;
-    protected static final double AB_collider_radius = 0.26;
 
 
     public KeepOutZone(SPoint center, double radius){
@@ -24,6 +23,10 @@ public class KeepOutZone {
         _center = center;
         _radius = radius;
         _shape = "SPHERE";
+    }
+
+    public static double getAB_collider_radius() {
+        return ABInfo.collider_radius;
     }
 
     public SPoint get_center() { return _center; }
@@ -42,7 +45,7 @@ public class KeepOutZone {
         *   TODO: change the output so it returns an ArrayList of failures/succeses (0/1)
         *
          */
-        double collision_threshold = this._radius + AB_collider_radius;
+        double collision_threshold = this._radius + ABInfo.collider_radius;
         ArrayList<SPoint> points = AB_pos.splitPath(AB_goal);
         ArrayList<SVector> vecs = SVector.genVecs(points, this._center);
         ArrayList<Double> lengths = SVector.lengths(vecs);
