@@ -156,7 +156,7 @@ if __name__ == "__main__":
     ascititle = """"""
     while True:
         rows, columns = os.popen('stty size', 'r').read().split()
-        f = open("/home/vkumar9/out.txt")
+        f = open("/home/vkumar9/ZR_Astrobee/out.txt")
         gamepoints = []
         for ind, item in enumerate(f.readlines()):
             if ind != 0:
