@@ -6,7 +6,7 @@ public class ScoreManager {
 
     public static void main(String... args) throws IOException {
         try {
-            FileWriter writer = new FileWriter("/home/" + System.getProperty("user.name") + "/out.txt");
+            FileWriter writer = new FileWriter("/home/" + System.getProperty("user.name") + "/ZR_Astrobee/out.txt");
             BufferedWriter out = new BufferedWriter(writer);
             out.write("SCORE!");
             out.newLine();

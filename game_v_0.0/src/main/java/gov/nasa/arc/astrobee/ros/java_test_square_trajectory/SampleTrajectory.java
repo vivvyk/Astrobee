@@ -37,6 +37,7 @@ public class SampleTrajectory {
         //api.pollinate(FlashlightLocation.FRONT, 0, 0);
 
         // Loop the points and orientation previously defined.
+        /*
         for (int i = 0; i < arrayOrient.length; i++) {
             result = api.moveTo(HOME_POSITION, arrayOrient[i]);
             if (!result.hasSucceeded()) {
@@ -52,6 +53,7 @@ public class SampleTrajectory {
         }
 
         //api.moveTo(POINT_2, DEFAULT_ORIENT);
+        */
 
         // Stop the API
         api.shutdownFactory();
