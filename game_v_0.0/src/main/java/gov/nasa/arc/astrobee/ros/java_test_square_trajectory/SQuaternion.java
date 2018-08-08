@@ -21,7 +21,7 @@ public class SQuaternion {
     private static RingNode ringNode = null;
     private static SVector lead_vec_orig = new SVector(0, 0.6, 0);
 
-    public void exec(NodeMainExecutor nodeMainExecutor) {
+    public static void exec(NodeMainExecutor nodeMainExecutor) {
         ringNode = new RingNode();
 
         // Setting configurations for ROS Node
@@ -199,7 +199,7 @@ public class SQuaternion {
     }
 
     public static void main(String... args) throws InterruptedException {
-
+/*
         SQuaternion quat = new SQuaternion( 0, 0, 90);
         SQuaternion other = new SQuaternion(0,0,0,1);
         SVector desired_norm = new SVector(1, 0, -1);
@@ -208,8 +208,8 @@ public class SQuaternion {
         for (double x: val) {
             System.out.println(x);
         }
+*/
 
-        /*
         exec(DefaultNodeMainExecutor.newDefault());
         Thread.sleep(3000);
         for (int i = 0; i < 10; i++) {
@@ -221,14 +221,16 @@ public class SQuaternion {
             Thread.sleep(670);
         }
 
+        /*
         SQuaternion q2 = new SQuaternion(.7071, 0, 0, .7071);
         SVector v2 = q2.quatToEuler();
         System.out.println(v2);
         System.out.println(SQuaternion.vecDiffToQuat(new SVector(0, -1, 0)));
-        */
+
         SVector original = new SVector(0, 0.6, 0);
         SQuaternion rotation = new SQuaternion(-0.7071, 0, 0, 0.7071);
         SVector result = SQuaternion.rotateVecByQuat(original, rotation);
         System.out.println(result);
+        */
     }
 }

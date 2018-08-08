@@ -146,6 +146,8 @@ public class ApiCommandImplementation {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        ScoreManager.initial();
     }
 
     /**
@@ -467,21 +469,29 @@ public class ApiCommandImplementation {
                 if (StringUtils.isEmpty(newPollen)){
                     results[i] = -1;
                     ABInfo.changeScore(Pollen.getMissPenalty());
-                } else {
+                    ScoreManager.updatem(Pollen.getMissPenalty(), 0);
+                }else{
                     results[i] = 1;
                     ABInfo.incrementSuccess();
+                    ScoreManager.updateh(false, newPollen);
                 }
                 if (StringUtils.isNotEmpty(prevPollen) && StringUtils.isNotEmpty(newPollen)) {
                     if (Pollen.prevCanGiveTo(prevPollen, newPollen)) {
                         ABInfo.changeScore(Pollen.getPollinateScore(newPollen));
+                        ScoreManager.updateh(true, newPollen);
                     } else {
                         ABInfo.changeScore(Pollen.getMispollinatePenalty());
+                        ScoreManager.updatem(0, Pollen.getMispollinatePenalty());
                     }
                 }
                 ABInfo.setPollenType(newPollen);
                 ABInfo.changeScore(Pollen.getCollectionScore(newPollen));
             }
         }
+
+        ScoreManager.updateratio(ABInfo.getScore(), ABInfo.getPollinateSuccesses(), ABInfo.getPollinateAttempts());
+        ScoreManager.updategui();
+
         try {
             flashlightShine();
         } catch (InterruptedException e) {

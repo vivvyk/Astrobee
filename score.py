@@ -1,6 +1,7 @@
 import os
 import time
 import sys
+import getpass
 
 def CROSS(colnum):
     tl = "+"
@@ -26,7 +27,7 @@ def TITLE(TITLE, colnum, lf):
     for i in range(empt):
         tr += " "
     if lf:
-        tr += " +"
+        tr += "+"
     else:
         tr += "+"
     print tr
@@ -83,42 +84,25 @@ def quad2(colnum, mp1, mp2, fr1, fr2):
     l3 = len("FINISH RING BONUS (POLLINATE)")
     l4 = len("FINISH RING BONUS (DONATION)")
 
-    empt1 = (int(colnum)-4-l1)/2
+    empt1 = (int(colnum)-3-l1-len(str(mp1)))/2
     tr="+"
     for i in range(empt1):
         tr+= " "
     tr += "MISFIRE PENALTY (NO PLANTS):" + str(mp1)
     for i in range(empt1):
         tr+= " "
-    tr += "+"
+    if len(str(mp1)) % 2 == 0:
+        tr += " +"
+    else:
+        tr += "+"
     print tr
 
-    empt2 = (int(colnum)-4-l2)/2
+    empt2 = (int(colnum)-3-l2-len(str(mp2)))/2
     tr="+"
     for i in range(empt2):
         tr+= " "
     tr += "MISFIRE PENALTY (WRONG PLANTS):" + str(mp2)
     for i in range(empt2+1):
-        tr+= " "
-    tr += "+"
-    print tr
-
-    empt3 = (int(colnum)-4-l3)/2
-    tr="+"
-    for i in range(empt3):
-        tr+= " "
-    tr += "FINISH RING BONUS (POLLINATE):" + str(fr1)
-    for i in range(empt3):
-        tr+= " "
-    tr += "+"
-    print tr
-
-    empt4 = (int(colnum)-4-l1)/2
-    tr="+"
-    for i in range(empt4):
-        tr+= " "
-    tr += "FINISH RING BONUS (DONATION):" + str(fr2)
-    for i in range(empt4-1):
         tr+= " "
     tr += "+"
     print tr
@@ -132,7 +116,7 @@ def SCORE(SCORE, colnum, lf):
     tr += "TOTAL SCORE:" + str(SCORE)
     for i in range(empt):
         tr += " "
-    if lf:
+    if len(str(SCORE)) % 2 == 0:
         tr += " +"
     else:
         tr += "+"
@@ -153,10 +137,20 @@ def POL_RATIO(NUM, DEN, colnum, lf):
     print tr
 
 if __name__ == "__main__":
-    ascititle = """"""
+    ascititle = """
+    ___         __             __          __
+   /   |  _____/ /__________  / /_  ____  / /_____ _____  __  __
+  / /| | / ___/ __/ ___/ __ \/ __ \/ __ \/ __/ __ `/ __ \/ / / /
+ / ___ |(__  ) /_/ /  / /_/ / /_/ / /_/ / /_/ /_/ / / / / /_/ /
+/_/  |_/____/\__/_/   \____/_.___/\____/\__/\__,_/_/ /_/\__, /
+                                                       /____/
+    """
+
+    username = getpass.getuser()
+
     while True:
         rows, columns = os.popen('stty size', 'r').read().split()
-        f = open("/home/vkumar9/ZR_Astrobee/out.txt")
+        f = open("/home/" + str(username) + "/ZR_Astrobee/out.txt")
         gamepoints = []
         for ind, item in enumerate(f.readlines()):
             if ind != 0:
@@ -187,3 +181,4 @@ if __name__ == "__main__":
         CROSS(columns)
         time.sleep(1)
         os.system("clear")
+    

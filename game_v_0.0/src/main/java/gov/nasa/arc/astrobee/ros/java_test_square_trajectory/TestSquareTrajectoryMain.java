@@ -30,7 +30,7 @@ public class TestSquareTrajectoryMain {
     private static final Quaternion ORIENT_4 = new Quaternion(0, 0.3827f, 0, 0.9239f);
 
     // Defining trajectory. Fixed positions and orientations. An orientation for each position.
-    private static Point[] arrayPoint = { POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4};
+    private static Point[] arrayPoint = { POINT_3, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4};
     private static Quaternion[] arrayOrient = { DEFAULT_ORIENT, ORIENT_1, DEFAULT_ORIENT, ORIENT_2, DEFAULT_ORIENT, ORIENT_3, DEFAULT_ORIENT, ORIENT_4};
 
 
